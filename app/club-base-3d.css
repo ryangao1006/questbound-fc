@@ -351,3 +351,251 @@
     transition: none;
   }
 }
+
+/* Comic room preview dialog (opens from a 3D room or its sticker label). */
+.base-room-preview-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(5, 13, 23, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.base-room-preview-dialog {
+  position: relative;
+  width: min(570px, 100%);
+  max-height: calc(100% - 4px);
+  overflow-y: auto;
+  padding: 18px 20px 16px;
+  border: 3px solid #10151f;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(255, 214, 90, 0.36), transparent 34%),
+    repeating-linear-gradient(0deg, rgba(16, 21, 31, 0.045) 0 1px, transparent 1px 5px),
+    #f6efdc;
+  color: #10151f;
+  box-shadow: 7px 7px 0 #10151f, 0 18px 50px rgba(0, 0, 0, 0.38);
+}
+
+.base-room-preview-dialog:focus-visible {
+  outline: 3px solid #c8f56e;
+  outline-offset: 2px;
+}
+
+.base-room-preview-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid #10151f;
+  border-radius: 50%;
+  background: #f6efdc;
+  color: #10151f;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.base-room-preview-close:hover,
+.base-room-preview-close:focus-visible {
+  background: #c8f56e;
+}
+
+.base-room-preview-eyebrow {
+  margin: 0 0 3px;
+  color: #566477;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.base-room-preview-dialog h2 {
+  margin: 0;
+  padding-right: 28px;
+  font-size: clamp(20px, 3.2vw, 28px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.base-room-preview-dialog h2 span {
+  display: block;
+  margin-top: 2px;
+  color: #566477;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.base-room-preview-status {
+  display: inline-block;
+  margin: 8px 0 12px;
+  padding: 4px 9px;
+  border: 2px solid #10151f;
+  border-radius: 999px;
+  background: #c8f56e;
+  font-size: 10.5px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.base-room-preview-diagrams {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 13px;
+}
+
+.base-room-diagram {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  min-width: 0;
+  padding: 8px;
+  border: 2px solid #10151f;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.42);
+  color: #10151f;
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.base-room-diagram > span:first-child {
+  min-height: 19px;
+  color: #566477;
+  font-size: 8px;
+  line-height: 1.25;
+}
+
+.base-room-diagram b {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.base-room-pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.base-room-pips i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #10151f;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.base-room-pips i.is-filled {
+  background: #10151f;
+}
+
+.base-room-bar-track {
+  display: block;
+  height: 11px;
+  overflow: hidden;
+  border: 2px solid #10151f;
+  border-radius: 999px;
+  background: rgba(16, 21, 31, 0.12);
+}
+
+.base-room-bar-track i {
+  display: block;
+  height: 100%;
+  background: #c8f56e;
+}
+
+.base-room-diagram-ring svg {
+  width: 68px;
+  height: 68px;
+  color: #10151f;
+}
+
+.base-room-ring-value {
+  stroke: #10151f;
+}
+
+.base-room-ring-text {
+  fill: #10151f;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.base-room-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.base-room-preview-enter,
+.base-room-preview-dismiss {
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 2px solid #10151f;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.base-room-preview-enter {
+  background: #10151f;
+  color: #f6efdc;
+  box-shadow: 3px 3px 0 #c8f56e;
+}
+
+.base-room-preview-enter:hover,
+.base-room-preview-enter:focus-visible {
+  background: #c8f56e;
+  color: #10151f;
+}
+
+.base-room-preview-dismiss {
+  background: transparent;
+  color: #10151f;
+}
+
+.base-room-preview-dismiss:hover,
+.base-room-preview-dismiss:focus-visible {
+  background: rgba(16, 21, 31, 0.1);
+}
+
+@media (max-width: 700px) {
+  .base-room-preview-layer {
+    padding: 7px;
+  }
+
+  .base-room-preview-dialog {
+    padding: 14px 13px 12px;
+    border-width: 2px;
+    box-shadow: 4px 4px 0 #10151f;
+  }
+
+  .base-room-preview-dialog h2 {
+    font-size: 20px;
+  }
+
+  .base-room-preview-diagrams {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .base-room-diagram-ring {
+    display: none;
+  }
+
+  .base-room-preview-enter,
+  .base-room-preview-dismiss {
+    flex: 1 1 120px;
+  }
+}

@@ -390,12 +390,20 @@ type BuildingProps = {
   hovered: boolean;
   gradientMap: THREE.Texture;
   onHover: (id: BaseRoomId | null) => void;
+  onSelect?: (room: BaseRoom) => void;
 };
 
-function Building({ room, visuals, hovered, gradientMap, onHover }: BuildingProps) {
+function Building({ room, visuals, hovered, gradientMap, onHover, onSelect }: BuildingProps) {
   const scale = hovered ? 1.06 : 1;
   return (
-    <group position={[room.x, BASE_Y, room.z]} scale={scale}>
+    <group
+      position={[room.x, BASE_Y, room.z]}
+      scale={scale}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect?.(room);
+      }}
+    >
       {room.building === "pitch" ? <Pitch room={room} visuals={visuals} hovered={hovered} gradientMap={gradientMap} onHover={onHover} /> : null}
       {room.building === "stadium" ? <Stadium room={room} visuals={visuals} hovered={hovered} gradientMap={gradientMap} onHover={onHover} /> : null}
       {room.building === "office" ? <OfficeBuilding room={room} visuals={visuals} hovered={hovered} gradientMap={gradientMap} onHover={onHover} tall={room.id === "tactics"} /> : null}
@@ -467,7 +475,7 @@ function ComicSky({ palette }: { palette: ReturnType<typeof comicPaletteFor> }) 
   );
 }
 
-function BaseDiorama({ visuals, hovered, onHover }: { visuals: BaseVisuals; hovered: string | null; onHover: (id: BaseRoomId | null) => void }) {
+function BaseDiorama({ visuals, hovered, onHover, onSelect }: { visuals: BaseVisuals; hovered: string | null; onHover: (id: BaseRoomId | null) => void; onSelect: (room: BaseRoom) => void }) {
   const gradientMap = useMemo(() => comicGradient(), []);
   const palette = useMemo(() => comicPaletteFor(visuals.theme.primary, visuals.theme.secondary), [visuals.theme]);
   const halftone = useMemo(() => halftoneGroundTexture(), []);
@@ -509,6 +517,7 @@ function BaseDiorama({ visuals, hovered, onHover }: { visuals: BaseVisuals; hove
           hovered={hovered === room.id}
           gradientMap={gradientMap}
           onHover={onHover}
+          onSelect={onSelect}
         />
       ))}
     </>
@@ -635,6 +644,139 @@ class SceneBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   }
 }
 
+type RoomDiagram =
+  | { kind: "pips"; label: string; filled: number; total: number }
+  | { kind: "bar"; label: string; value: number; max: number; display: string }
+  | { kind: "ring"; label: string; value: number; max: number; display: string };
+
+function roomPreviewData(room: BaseRoom, visuals: BaseVisuals, language: Language): { status: string; diagrams: RoomDiagram[] } {
+  const t = (en: string, zh: string) => (language === "zh" ? zh : en);
+  const tier = room.level;
+  const parseLeague = room.status.match(/tier (\d+) · round (\d+)\/(\d+)/);
+  const diagrams: RoomDiagram[] = [];
+  let status = room.status;
+  switch (room.id) {
+    case "training":
+      status = t(`Level ${visuals.training.level} · cap ${visuals.training.cap}`, `等级 ${visuals.training.level} · 上限 ${visuals.training.cap}`);
+      diagrams.push(
+        { kind: "pips", label: t("Facility level", "设施等级"), filled: visuals.training.level, total: 5 },
+        { kind: "bar", label: t("Training cap", "培养上限"), value: visuals.training.cap, max: 99, display: `${visuals.training.cap}` },
+        { kind: "ring", label: t("Level progress", "等级进度"), value: visuals.training.level, max: 5, display: `Lv ${visuals.training.level}` },
+      );
+      break;
+    case "stadium":
+      status = t(`Level ${visuals.stadium.level} · ${visuals.stadium.capacity.toLocaleString()} seats`, `等级 ${visuals.stadium.level} · ${visuals.stadium.capacity.toLocaleString()} 座`);
+      diagrams.push(
+        { kind: "pips", label: t("Stadium level", "球场等级"), filled: visuals.stadium.level, total: 5 },
+        { kind: "bar", label: t("Seats", "座位"), value: visuals.stadium.capacity, max: 26000, display: visuals.stadium.capacity.toLocaleString() },
+        { kind: "ring", label: t("Level progress", "等级进度"), value: visuals.stadium.level, max: 5, display: `Lv ${visuals.stadium.level}` },
+      );
+      break;
+    case "trophies":
+      status = t(`${visuals.trophyRoom.trophies} trophies · ${visuals.trophyRoom.kits} kits`, `${visuals.trophyRoom.trophies} 座奖杯 · ${visuals.trophyRoom.kits} 套纪念球衣`);
+      diagrams.push(
+        { kind: "pips", label: t("Trophy stars", "奖杯星"), filled: Math.min(5, visuals.trophyRoom.trophies), total: 5 },
+        { kind: "bar", label: t("Commemorative kits", "纪念球衣"), value: visuals.trophyRoom.kits, max: Math.max(1, visuals.trophyRoom.trophies), display: `${visuals.trophyRoom.kits}` },
+        { kind: "ring", label: t("Trophy room level", "荣誉室等级"), value: Math.min(5, visuals.trophyRoom.level), max: 5, display: `${visuals.trophyRoom.level}` },
+      );
+      break;
+    case "dressing":
+      status = t(`${visuals.squad.players} players · ${visuals.squad.starters} starters`, `${visuals.squad.players} 名球员 · ${visuals.squad.starters} 名首发`);
+      diagrams.push(
+        { kind: "pips", label: t("Squad depth", "阵容深度"), filled: Math.min(5, room.level), total: 5 },
+        { kind: "bar", label: t("Squad size", "阵容人数"), value: visuals.squad.players, max: 25, display: `${visuals.squad.players}/25` },
+        { kind: "bar", label: t("Starting XI", "首发人数"), value: visuals.squad.starters, max: 11, display: `${visuals.squad.starters}/11` },
+      );
+      break;
+    case "transfers":
+      status = t(`Scout Lv ${visuals.scout.level} · cap ${visuals.scout.cap}`, `球探等级 ${visuals.scout.level} · 上限 ${visuals.scout.cap}`);
+      diagrams.push(
+        { kind: "pips", label: t("Scout level", "球探等级"), filled: visuals.scout.level, total: 4 },
+        { kind: "bar", label: t("Scout cap", "球探上限"), value: visuals.scout.cap, max: 99, display: `${visuals.scout.cap}` },
+        { kind: "ring", label: t("Level progress", "等级进度"), value: visuals.scout.level, max: 4, display: `Lv ${visuals.scout.level}` },
+      );
+      break;
+    case "league":
+      status = parseLeague
+        ? t(`Tier ${parseLeague[1]} · round ${parseLeague[2]}/${parseLeague[3]}`, `级别 ${parseLeague[1]} · 第 ${parseLeague[2]}/${parseLeague[3]} 轮`)
+        : t("No season yet", "还没有赛季");
+      diagrams.push(
+        { kind: "pips", label: t("League tier", "联赛级别"), filled: tier, total: 4 },
+        { kind: "ring", label: t("Season progress", "赛季进度"), value: parseLeague ? Number(parseLeague[2]) : 0, max: parseLeague ? Number(parseLeague[3]) : 14, display: parseLeague ? `${parseLeague[2]}/${parseLeague[3]}` : "—" },
+      );
+      break;
+    case "cup":
+      status = room.status === "finished"
+        ? t("Finished", "已结束")
+        : room.status === "in progress"
+          ? t("In progress", "进行中")
+          : t("No cup yet", "还没有杯赛");
+      diagrams.push(
+        { kind: "pips", label: t("Cup tier", "杯赛级别"), filled: tier, total: 4 },
+        { kind: "ring", label: t("Cup progress", "杯赛进度"), value: tier >= 2 ? 2 : tier > 0 ? 1 : 0, max: 2, display: tier >= 2 ? "2/2" : tier > 0 ? "1/2" : "—" },
+      );
+      break;
+    case "tactics":
+      status = room.status;
+      diagrams.push(
+        { kind: "pips", label: t("Tactic levels", "战术等级"), filled: Math.min(5, room.level), total: 5 },
+        { kind: "ring", label: t("Tactic room level", "战术室等级"), value: Math.min(5, room.level), max: 5, display: `${room.level}` },
+      );
+      break;
+  }
+  return { status, diagrams };
+}
+
+function RoomPreviewDiagram({ diagram }: { diagram: RoomDiagram }) {
+  if (diagram.kind === "pips") {
+    return (
+      <div className="base-room-diagram base-room-diagram-pips" role="img" aria-label={`${diagram.label}: ${diagram.filled}/${diagram.total}`}>
+        <span>{diagram.label}</span>
+        <span className="base-room-pips" aria-hidden="true">
+          {Array.from({ length: diagram.total }).map((_, index) => (
+            <i key={index} className={index < diagram.filled ? "is-filled" : undefined} />
+          ))}
+        </span>
+        <b>{`${diagram.filled}/${diagram.total}`}</b>
+      </div>
+    );
+  }
+  if (diagram.kind === "ring") {
+    const pct = Math.max(0, Math.min(100, (diagram.value / Math.max(1, diagram.max)) * 100));
+    const ring = 2 * Math.PI * 22;
+    return (
+      <div className="base-room-diagram base-room-diagram-ring" role="img" aria-label={`${diagram.label}: ${diagram.display}`}>
+        <span>{diagram.label}</span>
+        <svg viewBox="0 0 56 56" aria-hidden="true">
+          <circle cx="28" cy="28" r="22" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.18" />
+          <circle
+            cx="28"
+            cy="28"
+            r="22"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={`${ring}`}
+            strokeDashoffset={`${ring * (1 - pct / 100)}`}
+            transform="rotate(-90 28 28)"
+            className="base-room-ring-value"
+          />
+          <text x="28" y="32" textAnchor="middle" className="base-room-ring-text">{diagram.display}</text>
+        </svg>
+      </div>
+    );
+  }
+  const pct = Math.max(0, Math.min(100, (diagram.value / Math.max(1, diagram.max)) * 100));
+  return (
+    <div className="base-room-diagram base-room-diagram-bar" role="img" aria-label={`${diagram.label}: ${diagram.display}`}>
+      <span>{diagram.label}</span>
+      <span className="base-room-bar-track" aria-hidden="true"><i style={{ width: `${pct}%` }} /></span>
+      <b>{diagram.display}</b>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* public component                                                     */
 /* ------------------------------------------------------------------ */
@@ -645,8 +787,11 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
   const [mobile, setMobile] = useState(false);
   const [transitionRoom, setTransitionRoom] = useState<BaseRoom | null>(null);
   const [transitionStartedAt, setTransitionStartedAt] = useState<number | null>(null);
+  const [previewRoom, setPreviewRoom] = useState<BaseRoom | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const anchors = useRef<Record<string, LabelAnchor>>({});
+  const previewDialogRef = useRef<HTMLDivElement | null>(null);
+  const previewPriorFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -682,11 +827,23 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
     };
   }, []);
 
-  const handleRoomClick = (event: React.MouseEvent<HTMLAnchorElement>, room: BaseRoom) => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (reduced) return;
-    event.preventDefault();
-    // eslint-disable-next-line react-hooks/purity -- click transition timestamp, not render state.
+  const openRoomPreview = (room: BaseRoom, origin?: HTMLElement | null) => {
+    previewPriorFocusRef.current =
+      origin ?? anchors.current[room.id] ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    setPreviewRoom(room);
+  };
+
+  const closeRoomPreview = () => {
+    setPreviewRoom(null);
+  };
+
+  const enterRoom = (room: BaseRoom) => {
+    setPreviewRoom(null);
+    if (reduced) {
+      window.location.assign(room.href);
+      return;
+    }
+    // Click transition timestamp, not render state.
     const startedAt = performance.now();
     setTransitionRoom(room);
     setTransitionStartedAt(startedAt);
@@ -697,6 +854,50 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
       window.location.assign(room.href);
     }, 460);
   };
+
+  const handleRoomClick = (event: React.MouseEvent<HTMLAnchorElement>, room: BaseRoom) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    openRoomPreview(room, event.currentTarget);
+  };
+
+  useEffect(() => {
+    if (!previewRoom) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const prior = previewPriorFocusRef.current;
+    const focusTimer = window.setTimeout(() => previewDialogRef.current?.focus(), 0);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setPreviewRoom(null);
+        return;
+      }
+      if (event.key !== "Tab" || !previewDialogRef.current) return;
+      const focusable = [...previewDialogRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')].filter((element) => element.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (prior?.isConnected) window.setTimeout(() => prior.focus(), 0);
+    };
+  }, [previewRoom]);
+
+  const preview = previewRoom ? roomPreviewData(previewRoom, visuals, language) : null;
+  const previewPrimary = previewRoom ? (language === "zh" ? previewRoom.labelZh : previewRoom.label) : "";
+  const previewSecondary = previewRoom ? (language === "zh" ? previewRoom.label : previewRoom.labelZh) : "";
 
   return (
     <div
@@ -720,7 +921,7 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
               window.__clubBaseReady = true;
             }}
           >
-            <BaseDiorama visuals={visuals} hovered={hovered} onHover={(id) => setHovered(id)} />
+            <BaseDiorama visuals={visuals} hovered={hovered} onHover={(id) => setHovered(id)} onSelect={(room) => openRoomPreview(room)} />
             <CameraRig
               reduced={reduced}
               mobile={mobile}
@@ -758,6 +959,53 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
           );
         })}
       </div>
+      {previewRoom && preview ? (
+        <div
+          className="base-room-preview-layer"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeRoomPreview();
+          }}
+        >
+          <div
+            className="base-room-preview-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="base-room-preview-title"
+            aria-describedby="base-room-preview-status"
+            tabIndex={-1}
+            ref={previewDialogRef}
+            data-base-room-preview={previewRoom.id}
+          >
+            <button
+              type="button"
+              className="base-room-preview-close"
+              aria-label={language === "zh" ? "关闭房间预览" : "Close room preview"}
+              onClick={closeRoomPreview}
+            >
+              ×
+            </button>
+            <p className="base-room-preview-eyebrow">{language === "zh" ? "房间预览" : "Room preview"}</p>
+            <h2 id="base-room-preview-title">
+              {previewPrimary}
+              <span>{previewSecondary}</span>
+            </h2>
+            <p id="base-room-preview-status" className="base-room-preview-status">{preview.status}</p>
+            <div className="base-room-preview-diagrams">
+              {preview.diagrams.map((diagram) => (
+                <RoomPreviewDiagram key={`${diagram.kind}-${diagram.label}`} diagram={diagram} />
+              ))}
+            </div>
+            <div className="base-room-preview-actions">
+              <button type="button" className="base-room-preview-enter" onClick={() => enterRoom(previewRoom)}>
+                {language === "zh" ? "进入房间" : "Enter room"}
+              </button>
+              <button type="button" className="base-room-preview-dismiss" onClick={closeRoomPreview}>
+                {language === "zh" ? "关闭" : "Close"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {transitionRoom ? (
         <div className="base-3d-transition" aria-hidden="true" data-transition-room={transitionRoom.id}>
           <span className="base-3d-transition-lines" />
@@ -768,8 +1016,8 @@ export default function ClubBase3D({ visuals, language, onUnavailable }: Props) 
       ) : null}
       <p className="base-3d-legend">
         {language === "zh"
-          ? "漫画风基地总览 · 点击标签进入房间 · 悬停高亮"
-          : "Comic base overview · click a label to enter a room · hover to highlight"}
+          ? "漫画风基地总览 · 点击房间或标签预览 · 悬停高亮"
+          : "Comic base overview · click a room or label to preview · hover to highlight"}
       </p>
     </div>
   );

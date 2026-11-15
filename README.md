@@ -95,4 +95,4 @@ The match engine borrows ideas from open-source football simulation and analytic
 - Released under the MIT licence (see `LICENSE`).
 - Player names/ratings come from a versioned, fictionalised game roster; all ratings are original simulated values.
 - Deployment identifiers for the private hosted build (`.openai/`, the Cloudflare account id) are intentionally **not** part of this repository. To deploy your own copy, configure your own Cloudflare Workers, D1 and R2 bindings and project metadata.
-- The long internal release log lives in [`docs/RELEASES.md`](docs/RELEASES.md); acceptance evidence is summarised in [`ACCEPTANCE-REPORT.md`](ACCEPTANCE-REPORT.md).
+- The long internal release log lives in [`docs/RELEASES.md`](docs/RELEASES.md); acceptance evidence is summarised in [`ACCEPTANCE-REPORT.md`](ACCEPTANCE-REPORT.md) and deployment steps in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).

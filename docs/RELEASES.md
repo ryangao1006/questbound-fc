@@ -555,3 +555,9 @@ The 2,062-player roster is no longer part of the initial club payload: `club-pre
 League and cup fixtures now run on the **v2 engine** and the club's own fixture in each round is saved as a normal match record (`engine:'v2'`, timeline, ballTrack, line-ups), so league and cup matches can be opened in the 3D watch, replay and storyboard like friendlies; they also drain fitness and respect the assistant's line-up repair. Two new tests cover the saved records and the fitness drain.
 
 Validation: typecheck, **549 tests**, four migration checks, `npm run prebuild`, production build and demo build. Schema remains 8.
+
+## 3.81 — room previews in the 3D base
+
+Clicking a building or its sticker label in the 3D base now opens a comic-paper **room preview** instead of navigating instantly: bilingual room name, the real status from `baseVisuals` (training Lv/cap, stadium Lv/seats, trophies/kits, squad/XI, league tier/round, cup state) and 2–3 small diagrams (facility level pips, cap/seat/depth bars, trophy stars, league progress rings). The dialog is `role=dialog aria-modal` with a focus trap, Esc and overlay close, body scroll locking and focus restoration. **进入房间 / Enter room** runs the existing 460 ms comic camera transition and navigates to the mapped `/club` anchor (training → `/club#club-training`, stadium → `/club#club-match`); reduced motion navigates directly. The eight rooms, hover highlight, label accessibility, lazy loading, WebGL fallback, 60 FPS and 390 px layout are unchanged.
+
+Validation: typecheck, **549 tests**, four migration checks, `npm run prebuild`, production build, static demo build and the 9/9 migration drill. Schema remains 8. Remaining work is user-dependent: real-phone FPS/touch checks, real Todoist/iCloud round trips, and deploying the full hosted app against your own Cloudflare project ids (see `docs/DEPLOYMENT.md`).
