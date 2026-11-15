@@ -14,7 +14,7 @@ function Demo(){
  return <>
   <div className="qfc-demo-bar">
    <strong>Questbound FC · live demo</strong>
-   <span>Runs entirely in your browser — your changes stay on this device. No account, no server.</span>
+   <span>Demo build: 5,000 demo funds to try every system. Everything stays in this browser — no account, no server.</span>
    <nav>
     <a href="#top" onClick={()=>setPage('club')}>Club</a>
     <a href="#base" onClick={()=>setPage('base')}>Base</a>

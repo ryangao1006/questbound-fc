@@ -10226,3 +10226,56 @@ html[data-theme="classic-career"] .club-page .club-card.has-backdrop {
     text-align: left;
   }
 }
+
+/* Low-funds guidance line. */
+.club-low-funds {
+  margin: 0 0 8px;
+  padding: 7px 10px;
+  border: 1px solid #ffd479;
+  border-radius: 8px;
+  background: color-mix(in srgb, #ffd479 10%, transparent);
+  color: #ffd479;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.club-low-funds a {
+  color: #ffd479;
+  text-decoration: underline;
+}
+
+/* Match-result heading is focusable for post-simulation focus. */
+#club-match-result-heading {
+  outline: none;
+}
+
+#club-match-result-heading:focus-visible {
+  outline: 2px solid var(--accent, #c8f56e);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Audit fix: all interactive buttons/links ≥40px at 390. */
+@media (max-width: 700px) {
+  .club-page button {
+    min-height: 40px !important;
+  }
+
+  .club-page a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px !important;
+  }
+
+  .club-page .club-tab {
+    min-height: 40px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .club-page .club-onboarding-replay {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}

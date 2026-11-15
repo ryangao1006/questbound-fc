@@ -561,3 +561,16 @@ Validation: typecheck, **549 tests**, four migration checks, `npm run prebuild`,
 Clicking a building or its sticker label in the 3D base now opens a comic-paper **room preview** instead of navigating instantly: bilingual room name, the real status from `baseVisuals` (training Lv/cap, stadium Lv/seats, trophies/kits, squad/XI, league tier/round, cup state) and 2–3 small diagrams (facility level pips, cap/seat/depth bars, trophy stars, league progress rings). The dialog is `role=dialog aria-modal` with a focus trap, Esc and overlay close, body scroll locking and focus restoration. **进入房间 / Enter room** runs the existing 460 ms comic camera transition and navigates to the mapped `/club` anchor (training → `/club#club-training`, stadium → `/club#club-match`); reduced motion navigates directly. The eight rooms, hover highlight, label accessibility, lazy loading, WebGL fallback, 60 FPS and 390 px layout are unchanged.
 
 Validation: typecheck, **549 tests**, four migration checks, `npm run prebuild`, production build, static demo build and the 9/9 migration drill. Schema remains 8. Remaining work is user-dependent: real-phone FPS/touch checks, real Todoist/iCloud round trips, and deploying the full hosted app against your own Cloudflare project ids (see `docs/DEPLOYMENT.md`).
+
+## 3.82 — UX audit fixes: demo onboarding, error copy, mobile targets, guidance and focus
+
+A UX audit (`UX-AUDIT.md`) of the app and the static demo found six concrete problems, all fixed:
+
+1. **The demo had no earning loop** — it now starts with **5,150 FC** (5,000 demo-only funds) and the banner explains the demo money, so signings, facilities and tactics are all explorable in one visit.
+2. **Dead planner links in the demo** — the demo bar now links “Demo home → `#top`” and “Base overview → `#base`”; no link leaves the static host.
+3. **English server errors in the zh UI** — a bilingual map covers funds, formations, substitutions, injuries, decorations and training caps; raw text stays available as detail.
+4. **Small mobile tap targets** — all four tabs now have **0 controls below 40 px** at 390 px with no layout overflow.
+5. **Low-funds dead end** — under 200 FC the overview shows a one-line hint: the real app links to the planner (“完成 1 个任务 +20 FC”), the demo explains the seeded funds.
+6. **Missed match results** — after a quick simulation the result hero scrolls into view, its heading takes focus and a live region announces the score.
+
+Validation: typecheck, **549 tests**, migration checks, `npm run prebuild`, production build, static demo build (index 640 KB), and browser checks for each fix. Schema remains 8.

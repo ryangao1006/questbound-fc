@@ -15,6 +15,8 @@ function seeded():PlannerState{
  let state=initialState();
  const apply=(id:string,command:Record<string,unknown>)=>reduceCommand(state,{...command,id} as never);
  state=apply('demo-club',{type:'club.create',name:'Questbound FC',shortName:'QFC',city:'Northbridge',formation:'4-3-3',colours:{primary:'#2f6f4e',secondary:'#c8f56e'}} as never);
+ // Demo only: enough funds to try every system (signing, facilities, tactics) in one visit.
+ state.economy.sources.push({id:'grant:demo-funds',kind:'grant',amount:5000,eligible:5000,spent:0,at:new Date().toISOString()});
  state=apply('demo-match-1',{type:'club.match',tier:1} as never);
  state=apply('demo-match-2',{type:'club.match',tier:0} as never);
  state=apply('demo-season',{type:'club.league.start',tier:0} as never);

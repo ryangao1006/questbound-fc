@@ -167,6 +167,9 @@ import { level, totalXP, type PlannerState } from "@/lib/model";
 const COPY = {
   /* header */
   backToPlanner: { en: "Back to planner", zh: "返回计划" },
+  demoHome: { en: "Demo home", zh: "演示首页" },
+  lowFundsReal: { en: "Low on funds? Return to the planner and complete 1 task for +20 FC", zh: "资金不足？回计划完成 1 个任务 +20 FC" },
+  lowFundsDemo: { en: "The demo starts with spending money — explore freely.", zh: "演示版已提供启动资金，可随意体验" },
   eyebrow: { en: "Questbound FC · Club management", zh: "Questbound FC · 俱乐部经营" },
   title: { en: "Club management · interactive preview", zh: "俱乐部经营 · 可操作预览版本" },
   lede: {
@@ -1478,6 +1481,27 @@ const TRAINABLE_ATTRIBUTES: { key: TrainableAttribute; code: string; label: Copy
 const TRAINABLE_KEYS = TRAINABLE_ATTRIBUTES.map((entry) => entry.key);
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 
+const COMMAND_ERROR_MESSAGES: Record<string, { en: string; zh: string }> = {
+  "Create your club first.": { en: "Create a club before using this action.", zh: "请先创建俱乐部再操作。" },
+  "Start a live match first.": { en: "Start a live match before making in-match changes.", zh: "请先开始一场临场指挥。" },
+  "This match is already finished.": { en: "This match has already finished.", zh: "这场比赛已经结束。" },
+  "Not enough club funds. Your balance is unchanged.": { en: "Not enough club funds. Complete a task or focus session to earn more.", zh: "俱乐部资金不足。完成一个任务或专注会话即可获得更多资金。" },
+  "This player is injured; wait for recovery before training.": { en: "This player is injured and cannot train yet.", zh: "该球员正在伤停，暂时无法培养。" },
+  "Five substitutions are the limit per match.": { en: "Only five substitutions are allowed per match.", zh: "每场比赛最多只能换 5 人。" },
+  "That player is not in the starting eleven.": { en: "That player is not in the starting XI.", zh: "该球员不在首发阵容中。" },
+  "That player is already on the pitch.": { en: "That player is already on the pitch.", zh: "该球员已经在场上。" },
+  "This decoration is not unlocked yet.": { en: "This decoration is not unlocked yet.", zh: "这项装饰尚未解锁。" },
+  "Choose a known decoration.": { en: "Choose a valid decoration.", zh: "请选择有效的装饰。" },
+  "Choose a supported formation.": { en: "Choose a supported formation.", zh: "请选择支持的阵型。" },
+  "The training centre caps this attribute.": { en: "The training centre caps this attribute.", zh: "训练中心等级限制了这项属性。" },
+  "Already at the maximum.": { en: "This attribute is already at maximum.", zh: "这项属性已达到上限。" },
+};
+
+function localizedCommandError(language: Language, message: string): string | null {
+  const entry = Object.entries(COMMAND_ERROR_MESSAGES).find(([raw]) => message === raw || message.startsWith(raw));
+  return entry ? entry[1][language] : null;
+}
+
 class CommandError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -2683,6 +2707,8 @@ export default function ClubPreviewPage() {
   const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
   const [liveFormationAnnouncement, setLiveFormationAnnouncement] = useState("");
   const [tacticSuggestAnnouncement, setTacticSuggestAnnouncement] = useState("");
+  const [isDemo, setIsDemo] = useState(false);
+  const [matchResultAnnouncement, setMatchResultAnnouncement] = useState("");
   const [onboardingVisible, setOnboardingVisible] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [onboardingAnnouncement, setOnboardingAnnouncement] = useState("");
@@ -2760,6 +2786,11 @@ export default function ClubPreviewPage() {
       active = false;
       controller.abort();
     };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- static demo detection after hydration.
+    setIsDemo(isStaticDemo());
   }, []);
 
   const state = envelope?.state ?? null;
@@ -3351,9 +3382,11 @@ export default function ClubPreviewPage() {
       void reload(true);
       return;
     }
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    const localized = localizedCommandError(language, rawMessage);
     setFeedback({
       kind: "error",
-      text: copy(language, fallbackKey, error instanceof Error ? error.message : String(error)),
+      text: localized ?? copy(language, fallbackKey, rawMessage),
     });
   };
 
@@ -3462,7 +3495,8 @@ export default function ClubPreviewPage() {
         });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : copy(language, "commandFailed");
+      const rawMessage = error instanceof Error ? error.message : copy(language, "commandFailed");
+      const message = localizedCommandError(language, rawMessage) ?? rawMessage;
       setDetailError(message);
       setFeedback({ kind: "error", text: message });
     } finally {
@@ -3767,6 +3801,16 @@ export default function ClubPreviewPage() {
     setExportAnnouncement(copy(language, "exportDone", date, date));
   };
 
+  const focusMatchResult = () => {
+    window.setTimeout(() => {
+      const heading = document.getElementById("club-match-result-heading");
+      if (!heading) return;
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      heading.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+      heading.focus({ preventScroll: true });
+    }, 80);
+  };
+
   const handleMatch = async () => {
     if (busy || !club || !envelope) return;
     const beforeCondition = conditionSnapshotOf(club);
@@ -3796,10 +3840,13 @@ export default function ClubPreviewPage() {
       const possession = record
         ? ` · ${copy(language, "matchPossession")} ${Math.round(record.possession[0])}%–${Math.round(record.possession[1])}%`
         : "";
+      const announcement = copy(language, "matchFinished", summary);
+      setMatchResultAnnouncement(`${announcement}${possession}`);
       setFeedback({
         kind: "success",
-        text: `${copy(language, "matchFinished", summary)}${possession} · ${copy(language, "matchNoFunds")}`,
+        text: `${announcement}${possession} · ${copy(language, "matchNoFunds")}`,
       });
+      focusMatchResult();
     } catch (error) {
       handleCommandError(error, "commandFailed");
     } finally {
@@ -4062,6 +4109,10 @@ export default function ClubPreviewPage() {
             home: record.teams?.home ?? club.name,
             matchId: record.id,
           });
+          setMatchResultAnnouncement(
+            copy(language, "matchFinished", `${record.teams?.home ?? club.name} ${record.score[0]} – ${record.score[1]} ${record.opponent.name}`),
+          );
+          focusMatchResult();
           const nextClub = next.state.club;
           const beforeCondition = conditionBeforeRef.current;
           if (nextClub && beforeCondition) {
@@ -5902,6 +5953,7 @@ export default function ClubPreviewPage() {
         </div>
         <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "matchIntro")}</p></details>
       </div>
+      <p className="club-visually-hidden" role="status" aria-live="polite">{matchResultAnnouncement}</p>
       <div className="club-panel club-match-panel">
         <div className="club-match-assistant-row">
           <details className="club-assistant" id="club-assistant" data-assistant-panel>
@@ -6019,7 +6071,7 @@ export default function ClubPreviewPage() {
         {latestMatch ? (
           <div className="club-match-result club-match-hero" role="status" aria-live="polite">
             <div className="club-match-result-head">
-              <h3 className="club-subheading">{copy(language, "matchResultTitle")}</h3>
+              <h3 className="club-subheading" id="club-match-result-heading" tabIndex={-1} data-match-result-heading>{copy(language, "matchResultTitle")}</h3>
               <span className="club-match-tier">{copy(language, MATCH_TIER_NAME_KEY[matchTierIndex(latestMatch.tier)])}</span>
             </div>
             <div className="club-match-scoreboard">
@@ -6777,6 +6829,15 @@ export default function ClubPreviewPage() {
           <p className="club-visually-hidden" role="status" aria-live="polite">{onboardingAnnouncement}</p>
         </section>
       ) : null}
+      {funds < 200 ? (
+        <p className="club-low-funds" role="status" aria-live="polite" data-low-funds>
+          {isDemo ? (
+            copy(language, "lowFundsDemo")
+          ) : (
+            <Link href="/">{copy(language, "lowFundsReal")}</Link>
+          )}
+        </p>
+      ) : null}
       <section className="club-panel club-overview-card" aria-labelledby="club-overview-heading">
         <div className="club-overview-identity">
           {crest ? <ClubCrestSvg crest={crest} size={72} className="club-overview-crest" /> : null}
@@ -6924,9 +6985,13 @@ export default function ClubPreviewPage() {
     <div className="club-page" lang={pageLangTag}>
       {mode !== "club" ? (
       <header className="club-topbar">
-        <Link className="club-back-link" href="/">
-          {`← ${copy(language, "backToPlanner")}`}
-        </Link>
+        {isDemo ? (
+          <a className="club-back-link" href="#top">{`← ${copy(language, "demoHome")}`}</a>
+        ) : (
+          <Link className="club-back-link" href="/">
+            {`← ${copy(language, "backToPlanner")}`}
+          </Link>
+        )}
         <p className="club-topbar-meta">{topbarMeta}</p>
       </header>
       ) : null}
@@ -6944,8 +7009,12 @@ export default function ClubPreviewPage() {
               <span className="club-compact-stat">{`${funds} FC`}</span>
             </div>
             <div className="club-compact-actions">
-              <Link href="/">{copy(language, "backToPlanner")}</Link>
-              <a href="/club/base">{language === "zh" ? "基地总览" : "Base overview"}</a>
+              {isDemo ? (
+                <a href="#top">{copy(language, "demoHome")}</a>
+              ) : (
+                <Link href="/">{copy(language, "backToPlanner")}</Link>
+              )}
+              <a href={isDemo ? "#base" : "/club/base"}>{language === "zh" ? "基地总览" : "Base overview"}</a>
             </div>
             <nav className="club-compact-tabs" role="tablist" aria-label={copy(language, "tabAria")}>
               {CLUB_TABS.map((tab, index) => (
