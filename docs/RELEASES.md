@@ -539,3 +539,9 @@ The live-match panel now has a formation picker (4-3-3 / 4-4-2 / 4-2-3-1) postin
 A live v2 match now also has an explicit **resume test**: advancing nine blocks, serialising the document to JSON, then finishing from the snapshot produces the identical score, timeline, seed and line-ups as finishing without the interruption — covering the PLAN acceptance item “切换、中断与恢复不重抽结果”.
 
 Validation: typecheck, **547 tests**, four migration checks, `npm run prebuild`, the production build and the static demo build. Schema remains 8.
+
+## 3.79 — scouting filters, first-visit guide and club export on screen
+
+The transfer area now opens with **league / region / position filter chips** backed by `filterRoster` + `scoutingPlan(..., {clubs, filters})`: the real roster (2,062 players, 602 listed after the scout cap) narrows to 1,459 with “Other leagues”, to 114 with AM, and an impossible intersection honestly shows 0 with “没有符合筛选条件的推荐。” and a clear button; recommendations and list share the same filter and the active filter summary is announced. A fresh browser gets a **3-step onboarding card** (earn funds/XP → train players and tactics → play and watch 3D) with next/skip, stored only in `localStorage['qfc-club-onboarding-v1']`, replayable from the overview “?” button. The Club tab gained **export**: one click downloads `questbound-fc-<date>.json` (6.6 KB) and `.md` (1.8 KB) containing the club identity, level, funds, line ratings, squad, trophies, season history and recent matches — verified to include “Northbridge FC” and the trophy count, entirely client-side.
+
+Validation: typecheck, **547 tests**, four migration checks, `npm run prebuild`, the production build and the static demo build. The demo first load is one 881 KB JS chunk with the 3D chunks lazy-loaded on demand. Schema remains 8.

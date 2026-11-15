@@ -551,6 +551,8 @@ const COPY = {
   scoutPositionAll: { en: "All", zh: "全部" },
   scoutFiltersTitle: { en: "Scouting filters", zh: "球探筛选" },
   scoutLeague: { en: "League", zh: "联赛" },
+  scoutLeagueOther: { en: "Other leagues", zh: "其他联赛" },
+  scoutLeaguePremier: { en: "Premier League", zh: "英超" },
   scoutRegion: { en: "Region", zh: "地区" },
   scoutFilterAll: { en: "All", zh: "全部" },
   scoutClearFilters: { en: "Clear filters", zh: "清除筛选" },
@@ -851,6 +853,27 @@ const COPY = {
   tabTransfers: { en: "Recruitment & facilities", zh: "引援与设施" },
   tabHonours: { en: "Honours & display", zh: "荣誉与展示" },
   overviewTitle: { en: "Your club at a glance", zh: "俱乐部概览" },
+  onboardingTitle: { en: "Getting started", zh: "新手引导" },
+  onboardingStep1Title: { en: "Earn funds & XP", zh: "赚取资金与 XP" },
+  onboardingStep1Body: { en: "Complete tasks and focus sessions to earn club funds and levels.", zh: "完成任务与专注会话，获得俱乐部资金与等级经验。" },
+  onboardingStep2Title: { en: "Train players & tactics", zh: "培养球员与战术" },
+  onboardingStep2Body: { en: "Spend funds to raise attributes and upgrade your match tactics.", zh: "用资金提升球员属性，并升级比赛战术。" },
+  onboardingStep3Title: { en: "Play and watch 3D", zh: "打比赛，看 3D 观战" },
+  onboardingStep3Body: { en: "Simulate or coach a match, then open the 3D watch to see the ball live.", zh: "模拟或临场指挥一场比赛，再打开 3D 观战看实时球路。" },
+  onboardingNext: { en: "Next", zh: "下一步" },
+  onboardingFinish: { en: "Finish", zh: "完成" },
+  onboardingSkip: { en: "Skip", zh: "跳过" },
+  onboardingReplay: { en: "Replay the guide", zh: "重看新手引导" },
+  onboardingStep: { en: "Step {0} / 3", zh: "第 {0} / 3 步" },
+  onboardingProgress: { en: "Onboarding step {0} of 3", zh: "新手引导第 {0} / 3 步" },
+  onboardingSkipped: { en: "Guide skipped. Use ? to replay it anytime.", zh: "已跳过引导。可随时用 ? 重看。" },
+  onboardingDismissed: { en: "Guide finished. Use ? to replay it anytime.", zh: "引导已完成。可随时用 ? 重看。" },
+  exportTitle: { en: "Export club summary", zh: "导出俱乐部摘要" },
+  exportIntro: { en: "Download a JSON and Markdown summary to your device. Nothing is uploaded.", zh: "将 JSON 与 Markdown 摘要下载到本地，不会上传任何数据。" },
+  exportButton: { en: "Export summary", zh: "导出摘要" },
+  exportAria: { en: "Download the club summary as JSON and Markdown", zh: "下载俱乐部摘要的 JSON 与 Markdown 文件" },
+  exportDone: { en: "Club summary downloaded: {0}.json and {1}.md", zh: "俱乐部摘要已下载：{0}.json 与 {1}.md" },
+  exportEmpty: { en: "No club data to export yet.", zh: "还没有可导出的俱乐部数据。" },
   overviewIntro: { en: "A short home for what matters. Pick a tab when you need the detail.", zh: "只保留重要内容，需要细节时再切换到对应栏目。" },
   overviewNext: { en: "Next steps", zh: "下一步" },
   overviewLatest: { en: "Latest result", zh: "最近一场" },
@@ -2578,6 +2601,21 @@ function ConditionDiagram({ report, label }: { report: ConditionReport; label: s
   );
 }
 
+const ONBOARDING_KEY = "qfc-club-onboarding-v1";
+
+function downloadTextFile(filename: string, content: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 function conditionSnapshotOf(club: ClubState): { average: number; injured: Set<string> } {
   return {
     average: conditionReport(club).startersAvgFitness,
@@ -2609,6 +2647,10 @@ export default function ClubPreviewPage() {
   const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
   const [liveFormationAnnouncement, setLiveFormationAnnouncement] = useState("");
   const [tacticSuggestAnnouncement, setTacticSuggestAnnouncement] = useState("");
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [onboardingAnnouncement, setOnboardingAnnouncement] = useState("");
+  const [exportAnnouncement, setExportAnnouncement] = useState("");
   const conditionBeforeRef = useRef<{ average: number; injured: Set<string> } | null>(null);
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   const [celebrationMode, setCelebrationMode] = useState<"pending" | "review">("pending");
@@ -2697,6 +2739,17 @@ export default function ClubPreviewPage() {
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (!window.localStorage.getItem(ONBOARDING_KEY)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- first-visit onboarding is hydrated from localStorage.
+        setOnboardingVisible(true);
+      }
+    } catch {
+      // localStorage can be unavailable in private/sandboxed contexts; the guide is optional.
+    }
   }, []);
 
   useEffect(() => {
@@ -3048,6 +3101,17 @@ export default function ClubPreviewPage() {
   const toggleScoutingFilter = (field: keyof ScoutingFilters, value: string) =>
     setScoutingFilters((current) => ({ ...current, [field]: current[field] === value ? undefined : value }));
   const clearScoutingFilters = () => setScoutingFilters({});
+  const scoutingLeagueLabel = (id: string) =>
+    id === "premier-league"
+      ? copy(language, "scoutLeaguePremier")
+      : id === "background"
+        ? copy(language, "scoutLeagueOther")
+        : id;
+  const scoutingFilterDescription = describeFilters(scoutingFilters)
+    .replace("All players", copy(language, "scoutFilterAll"))
+    .replace("background", copy(language, "scoutLeagueOther"));
+  const scoutingChoiceLabel = (field: "league" | "region" | "position", id: string) =>
+    field === "league" ? scoutingLeagueLabel(id) : id;
   const scoutRows = useMemo(() => {
     if (!club) return [];
     const filtered = WORLD_SCOUT_TARGETS.filter((entry) => {
@@ -3495,6 +3559,141 @@ export default function ClubPreviewPage() {
       setBusy(false);
       setPendingAction("");
     }
+  };
+
+  const finishOnboarding = (messageKey: "onboardingSkipped" | "onboardingDismissed") => {
+    try {
+      window.localStorage.setItem(ONBOARDING_KEY, "1");
+    } catch {
+      // localStorage can be unavailable; the guide still closes for this visit.
+    }
+    setOnboardingVisible(false);
+    setOnboardingStep(0);
+    setOnboardingAnnouncement(copy(language, messageKey));
+  };
+
+  const handleOnboardingNext = () => {
+    if (onboardingStep >= 2) {
+      finishOnboarding("onboardingDismissed");
+      return;
+    }
+    const next = onboardingStep + 1;
+    setOnboardingStep(next);
+    setOnboardingAnnouncement(copy(language, "onboardingProgress", next + 1));
+  };
+
+  const handleOnboardingReplay = () => {
+    setOnboardingVisible(true);
+    setOnboardingStep(0);
+    setOnboardingAnnouncement(copy(language, "onboardingProgress", 1));
+  };
+
+  const handleExportClubSummary = () => {
+    if (!club) {
+      setExportAnnouncement(copy(language, "exportEmpty"));
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    const ratings = clubRatings(club);
+    const trophyList = trophies.map((trophy) => ({
+      kind: trophy.kind,
+      tier: trophy.tier,
+      label: trophy.label,
+      at: trophy.at,
+    }));
+    const summary = {
+      generatedAt: new Date().toISOString(),
+      club: {
+        name: club.name,
+        shortName: club.shortName,
+        city: club.city,
+        formation: club.formation,
+        colours: club.colours,
+      },
+      level: clubLevel,
+      xp: clubXp,
+      funds,
+      lineRatings: ratings,
+      squad: club.players.map((player) => ({
+        name: player.name,
+        number: player.number,
+        position: player.position,
+        ovr: player.ovr,
+        origin: player.origin,
+        fitness: fitnessOf(player),
+        injuryMatches: injuryMatchesOf(player),
+      })),
+      trophyCount: trophyList.length,
+      trophies: trophyList,
+      seasonHistory: seasonHistory.map((record) => ({
+        id: record.id,
+        tier: record.tier,
+        position: record.position,
+        points: record.points,
+        won: record.won,
+        drawn: record.drawn,
+        lost: record.lost,
+        gf: record.gf,
+        ga: record.ga,
+        outcome: record.outcome,
+        at: record.at,
+      })),
+      recentMatches: (club.matches ?? []).slice(0, 5).map((match) => ({
+        at: match.at,
+        tier: match.tier,
+        teams: match.teams,
+        score: match.score,
+        opponent: match.opponent.name,
+      })),
+    };
+    const markdown = [
+      `# ${club.name} — Club summary`,
+      "",
+      `Generated: ${summary.generatedAt}`,
+      "",
+      "## Identity",
+      "",
+      `- Short name: ${club.shortName}`,
+      `- City: ${club.city}`,
+      `- Formation: ${club.formation}`,
+      `- Level: ${clubLevel}`,
+      `- XP: ${clubXp}`,
+      `- Funds: ${funds} FC`,
+      "",
+      "## Line ratings",
+      "",
+      `- DEF ${ratings.DEF.toFixed(1)}`,
+      `- MID ${ratings.MID.toFixed(1)}`,
+      `- ATT ${ratings.ATT.toFixed(1)}`,
+      `- GK ${ratings.GK.toFixed(1)}`,
+      `- OVR ${ratings.overall.toFixed(1)}`,
+      "",
+      "## Squad",
+      "",
+      "| # | Player | Position | OVR | Fitness | Injury matches |",
+      "| --- | --- | --- | --- | --- | --- |",
+      ...club.players.map((player) => `| ${player.number} | ${player.name} | ${player.position} | ${player.ovr} | ${fitnessOf(player)} | ${injuryMatchesOf(player)} |`),
+      "",
+      `## Trophies (${trophyList.length})`,
+      "",
+      ...(trophyList.length ? trophyList.map((trophy) => `- ${trophy.kind} · ${trophy.label} · tier ${trophy.tier + 1} · ${trophy.at}`) : ["None"]),
+      "",
+      "## Season history",
+      "",
+      ...(summary.seasonHistory.length
+        ? summary.seasonHistory.map((record) => `- Tier ${record.tier + 1} · position ${record.position} · ${record.points} pts · ${record.won}W ${record.drawn}D ${record.lost}L`)
+        : ["None"]),
+      "",
+      "## Recent matches",
+      "",
+      ...(summary.recentMatches.length
+        ? summary.recentMatches.map((match) => `- ${match.teams.home} ${match.score[0]} – ${match.score[1]} ${match.teams.away} · tier ${match.tier + 1} · ${match.at}`)
+        : ["None"]),
+      "",
+    ].join("\n");
+    downloadTextFile(`questbound-fc-${date}.json`, JSON.stringify(summary, null, 2), "application/json");
+    downloadTextFile(`questbound-fc-${date}.md`, markdown, "text/markdown");
+    setExportAnnouncement(copy(language, "exportDone", date, date));
   };
 
   const handleMatch = async () => {
@@ -4668,13 +4867,14 @@ export default function ClubPreviewPage() {
           ["region", "scoutRegion", scoutingChoices.regions],
           ["position", "scoutPositionFilter", scoutingPositions.map((position) => ({ id: position, label: position }))],
         ] as const).map(([field, labelKey, options]) => (
-          <div className="club-scout-filter-row" key={field}>
+          <div className="club-scout-filter-row" key={field} data-scout-filter={field}>
             <span className="club-scout-filter-label">{copy(language, labelKey)}</span>
             <div className="club-scout-filter-chips">
               <button
                 type="button"
                 className={`club-scout-chip${!scoutingFilters[field] ? " is-selected" : ""}`}
                 aria-pressed={!scoutingFilters[field]}
+                data-scout-value=""
                 onClick={() => setScoutingFilters((current) => ({ ...current, [field]: undefined }))}
               >
                 {copy(language, "scoutFilterAll")}
@@ -4685,20 +4885,27 @@ export default function ClubPreviewPage() {
                   type="button"
                   className={`club-scout-chip${scoutingFilters[field] === option.id ? " is-selected" : ""}`}
                   aria-pressed={scoutingFilters[field] === option.id}
+                  data-scout-value={option.id}
                   onClick={() => toggleScoutingFilter(field, option.id)}
                 >
-                  {option.label}
+                  {scoutingChoiceLabel(field, option.id)}
                 </button>
               ))}
             </div>
           </div>
         ))}
-        <div className="club-scout-filter-meta">
+        <div
+          className="club-scout-filter-meta"
+          data-scout-filtered={scoutingFilteredPlayers.length}
+          data-scout-list={scoutRows.length}
+          data-scout-recommendations={scouting?.recommendations.length ?? 0}
+          data-scout-filters={describeFilters(scoutingFilters)}
+        >
           <span aria-live="polite">
             {copy(
               language,
               "scoutFilterSummary",
-              describeFilters(scoutingFilters),
+              scoutingFilterDescription,
               scoutingFilteredPlayers.length,
               scouting?.recommendations.length ?? 0,
             )}
@@ -6330,8 +6537,78 @@ export default function ClubPreviewPage() {
     </section>
   ) : null;
 
+  const exportSection = mode === "club" && club ? (
+    <section className="club-section club-export-section" id="club-export" aria-labelledby="club-export-heading">
+      <div className="club-section-head">
+        <div>
+          <p className="club-eyebrow">{copy(language, "exportTitle")}</p>
+          <h2 id="club-export-heading">{copy(language, "exportTitle")}</h2>
+        </div>
+        <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "exportIntro")}</p></details>
+      </div>
+      <div className="club-panel club-export-panel">
+        <div className="club-export-actions">
+          <button
+            type="button"
+            className="club-button club-button-primary"
+            onClick={handleExportClubSummary}
+            aria-label={copy(language, "exportAria")}
+            data-export-button
+          >
+            {copy(language, "exportButton")}
+          </button>
+          <span className="club-note">{copy(language, "exportButton")} · JSON + MD</span>
+        </div>
+        <p className="club-export-announcement" role="status" aria-live="polite">{exportAnnouncement}</p>
+      </div>
+    </section>
+  ) : null;
+
   const overviewSection = mode === "club" ? (
     <div className="club-overview">
+      {onboardingVisible ? (
+        <section className="club-onboarding" role="region" aria-labelledby="club-onboarding-title" data-onboarding>
+          <div className="club-onboarding-head">
+            <div>
+              <p className="club-eyebrow">{copy(language, "onboardingTitle")}</p>
+              <h2 id="club-onboarding-title">{copy(language, "onboardingTitle")}</h2>
+            </div>
+            <button
+              type="button"
+              className="club-onboarding-skip"
+              onClick={() => finishOnboarding("onboardingSkipped")}
+              aria-label={copy(language, "onboardingSkip")}
+            >
+              {copy(language, "onboardingSkip")}
+            </button>
+          </div>
+          <ol className="club-onboarding-steps">
+            {[
+              ["onboardingStep1Title", "onboardingStep1Body"],
+              ["onboardingStep2Title", "onboardingStep2Body"],
+              ["onboardingStep3Title", "onboardingStep3Body"],
+            ].map(([titleKey, bodyKey], index) => (
+              <li
+                key={titleKey}
+                className={`club-onboarding-step${index === onboardingStep ? " is-current" : ""}${index < onboardingStep ? " is-done" : ""}`}
+              >
+                <b className="club-onboarding-index">{index + 1}</b>
+                <div>
+                  <strong>{copy(language, titleKey as CopyKey)}</strong>
+                  <span>{copy(language, bodyKey as CopyKey)}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="club-onboarding-actions">
+            <span className="club-pill">{copy(language, "onboardingStep", onboardingStep + 1)}</span>
+            <button type="button" className="club-button club-button-primary" onClick={handleOnboardingNext}>
+              {onboardingStep >= 2 ? copy(language, "onboardingFinish") : copy(language, "onboardingNext")}
+            </button>
+          </div>
+          <p className="club-visually-hidden" role="status" aria-live="polite">{onboardingAnnouncement}</p>
+        </section>
+      ) : null}
       <section className="club-panel club-overview-card" aria-labelledby="club-overview-heading">
         <div className="club-overview-identity">
           {crest ? <ClubCrestSvg crest={crest} size={72} className="club-overview-crest" /> : null}
@@ -6393,7 +6670,19 @@ export default function ClubPreviewPage() {
       ) : null}
 
       <section className="club-overview-actions" aria-labelledby="club-overview-next-heading">
-        <h3 id="club-overview-next-heading">{copy(language, "overviewNext")}</h3>
+        <div className="club-overview-actions-head">
+          <h3 id="club-overview-next-heading">{copy(language, "overviewNext")}</h3>
+          <button
+            type="button"
+            className="club-onboarding-replay"
+            aria-label={copy(language, "onboardingReplay")}
+            title={copy(language, "onboardingReplay")}
+            onClick={handleOnboardingReplay}
+            data-onboarding-replay
+          >
+            ?
+          </button>
+        </div>
         <div className="club-overview-action-grid">
           {overviewActions.map((action, index) => {
             const anchor = action.href.includes("#") ? action.href.split("#")[1] : "";
@@ -6938,6 +7227,7 @@ export default function ClubPreviewPage() {
           ) : null}
           {clubTab === "club" ? (
             <>
+              {exportSection}
               {decorSection}
               {transfersSection}
               {facilitiesSection}
