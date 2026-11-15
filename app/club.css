@@ -9186,3 +9186,395 @@ html[data-theme="classic-career"] .club-page .club-card.has-backdrop {
   letter-spacing: 0.02em;
   line-height: 1.4;
 }
+
+/* Player condition, assistant and post-match condition summary (PLAN 3.6). */
+.club-condition-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 72px;
+  max-width: 118px;
+  height: 16px;
+  padding: 0 5px 0 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line, #466681) 25%, transparent);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.club-condition-bar > i {
+  display: block;
+  min-width: 5px;
+  height: 100%;
+  border-radius: 999px;
+  background: #c8f56e;
+  transition: width 180ms ease-out;
+}
+
+.club-condition-bar > b {
+  position: absolute;
+  right: 4px;
+  color: #f5f8ff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 16px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.club-condition-bar.is-low > i {
+  background: #ffd479;
+}
+
+.club-condition-bar.is-tired > i {
+  background: #f59e42;
+}
+
+.club-condition-bar.is-injured > i {
+  background: #ff6b6b;
+}
+
+.club-condition-bar.is-compact {
+  height: 14px;
+  min-width: 62px;
+  max-width: 104px;
+}
+
+.club-condition-bar.is-compact > b {
+  font-size: 7.5px;
+  line-height: 14px;
+}
+
+.club-condition-badge {
+  position: absolute;
+  left: 0;
+  top: -13px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #ff6b6b;
+  color: #141821;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.club-condition-state {
+  color: var(--muted, #a9bed2);
+  font-size: 8.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.club-condition-state.is-injured {
+  color: #ff8585;
+}
+
+.club-condition-state.is-tired {
+  color: #ffd479;
+}
+
+.club-player-card-condition {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 3px 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--card-ink, #10151f) 24%, transparent);
+}
+
+.club-player-detail-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.club-player-detail-condition .club-condition-bar {
+  max-width: 150px;
+}
+
+.club-train-condition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.club-condition-diagram {
+  width: 150px;
+  height: 50px;
+  max-width: 100%;
+  color: var(--text, #f5f8ff);
+}
+
+.club-condition-available {
+  fill: #c8f56e;
+}
+
+.club-condition-injured {
+  fill: #ff6b6b;
+}
+
+.club-condition-tired {
+  fill: #f59e42;
+}
+
+.club-condition-diagram-count {
+  fill: var(--muted, #a9bed2);
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.club-condition-diagram-avg {
+  fill: var(--accent, #c8f56e);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.club-condition-diagram-caption {
+  fill: var(--muted, #a9bed2);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.club-overview-condition-strip {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vw, 20px);
+  min-width: 0;
+  margin: 0 0 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--line, #466681);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--surface, #0e2845) 82%, transparent);
+}
+
+.club-overview-condition-label {
+  color: var(--accent, #c8f56e);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.club-overview-condition-avg {
+  margin-left: auto;
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.club-match-assistant-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 6px;
+  margin: 0;
+}
+
+.club-assistant {
+  order: 0;
+  min-width: 210px;
+  max-width: 520px;
+  border: 1px solid var(--line, #466681);
+  border-radius: 8px;
+  background: var(--surface, #0e2845);
+}
+
+.club-assistant > summary {
+  padding: 7px 11px;
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.club-assistant[open] > summary {
+  border-bottom: 1px solid var(--line, #466681);
+}
+
+.club-assistant-body {
+  display: grid;
+  gap: 6px;
+  padding: 8px 11px 10px;
+}
+
+.club-assistant-toggle {
+  display: flex;
+  align-items: start;
+  gap: 7px;
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.club-assistant-toggle input {
+  width: 15px;
+  height: 15px;
+  margin: 1px 0 0;
+  accent-color: var(--accent, #c8f56e);
+}
+
+.club-assistant-toggle b {
+  display: block;
+  font-size: 10px;
+}
+
+.club-assistant-toggle small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted, #a9bed2);
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.club-assistant-note {
+  margin: 0;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.club-assistant-announcement {
+  min-height: 11px;
+  margin: 0;
+  color: var(--accent, #c8f56e);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.club-pre-match-note {
+  margin: 0;
+  padding: 6px 9px;
+  border: 1px solid #ffd479;
+  border-radius: 7px;
+  background: color-mix(in srgb, #ffd479 10%, transparent);
+  color: #ffd479;
+  font-size: 9.5px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.club-condition-summary {
+  display: grid;
+  gap: 5px;
+  margin: 7px auto 0;
+  padding: 8px 10px;
+  max-width: 520px;
+  border: 1px solid var(--line, #466681);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-high, #183954) 68%, transparent);
+  text-align: left;
+}
+
+.club-condition-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+}
+
+.club-condition-summary-head span {
+  color: var(--muted, #a9bed2);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.club-condition-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text, #f5f8ff);
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.club-condition-summary-row .club-condition-bar {
+  margin-left: auto;
+}
+
+.club-condition-summary p {
+  margin: 0;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.club-condition-summary p.is-injured {
+  color: #ff8585;
+}
+
+@media (max-width: 700px) {
+  .club-player-card-condition {
+    padding: 3px 7px;
+  }
+
+  .club-overview-condition-strip {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding: 4px 8px;
+  }
+
+  .club-overview-condition-avg {
+    margin-left: 0;
+  }
+
+  .club-condition-diagram {
+    width: 132px;
+    height: 44px;
+  }
+
+  .club-assistant {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .club-pre-match-note {
+    width: 100%;
+  }
+
+  .club-condition-summary {
+    max-width: none;
+  }
+}
+
+.club-overview-condition-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.club-overview-condition-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.club-overview-condition-legend i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.club-overview-condition-legend .is-available i {
+  background: #c8f56e;
+}
+
+.club-overview-condition-legend .is-injured i {
+  background: #ff6b6b;
+}
+
+.club-overview-condition-legend .is-tired i {
+  background: #f59e42;
+}

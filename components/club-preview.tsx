@@ -114,6 +114,15 @@ import {
   playerDetail,
   type AttributeKey,
 } from "@/lib/club-player-detail";
+import {
+  assistantOf,
+  conditionReport,
+  fitnessOf,
+  injuryMatchesOf,
+  isAvailable,
+  isInjured,
+  type ConditionReport,
+} from "@/lib/club-condition";
 import { clubHomeSummary, nextClubActions } from "@/lib/club-actions";
 import {
   budgetSplit,
@@ -213,6 +222,32 @@ const COPY = {
   columnFit: { en: "Fit", zh: "适配" },
   columnTraining: { en: "Next PAS training", zh: "下一笔 PAS 培养" },
   columnStatus: { en: "Training centre", zh: "训练中心" },
+  columnFitness: { en: "Fitness", zh: "体能" },
+  columnCondition: { en: "Status", zh: "状态" },
+  conditionAvailable: { en: "Available", zh: "可用" },
+  conditionInjured: { en: "Injured", zh: "伤停" },
+  conditionTired: { en: "Tired", zh: "疲劳" },
+  conditionInjuryBadge: { en: "Out {0}", zh: "伤停 {0} 场" },
+  conditionStarterAvg: { en: "XI fitness {0}", zh: "首发体能 {0}" },
+  conditionTitle: { en: "Condition", zh: "球员状态" },
+  conditionOverviewLabel: { en: "Squad condition: {0} available, {1} injured, {2} tired; starting XI fitness {3}", zh: "球队状态：可用 {0}、伤停 {1}、疲劳 {2}；首发平均体能 {3}" },
+  trainingInjured: { en: "Injured — training unavailable", zh: "伤停 — 无法培养" },
+  clubDetailInjured: { en: "This player is injured; wait for recovery before training.", zh: "该球员伤停中，恢复后才能培养。" },
+  assistantTitle: { en: "Assistant", zh: "助教" },
+  assistantAutoSquad: { en: "Auto-squad", zh: "自动排阵" },
+  assistantAutoSubs: { en: "Auto-substitutions", zh: "自动换人" },
+  assistantNote: { en: "The assistant only replaces players who cannot play; it never overrides a healthy XI you set by hand.", zh: "助教只会替换无法出场的球员，不会覆盖你手动排好的健康首发。" },
+  assistantOn: { en: "Assistant setting saved: {0} on.", zh: "助教设置已保存：{0}已开启。" },
+  assistantOff: { en: "Assistant setting saved: {0} off.", zh: "助教设置已保存：{0}已关闭。" },
+  assistantPreMatch: { en: "Assistant will adjust {0} unavailable starter(s).", zh: "助教会自动调整 {0} 名无法出场的首发。" },
+  assistantPreMatchManual: { en: "{0} unavailable starter(s); auto-squad is off.", zh: "{0} 名首发无法出场；自动排阵已关闭。" },
+  conditionSummaryTitle: { en: "Post-match condition", zh: "赛后体能" },
+  conditionSummaryAverage: { en: "Starting XI fitness {0} → {1}", zh: "首发平均体能 {0} → {1}" },
+  conditionSummaryNewInjuries: { en: "New injuries: {0}", zh: "新增伤病：{0}" },
+  conditionSummaryNoInjuries: { en: "No new injuries", zh: "无新增伤病" },
+  conditionSummaryQuick: { en: "Quick match", zh: "快速比赛" },
+  conditionSummaryLive: { en: "Live match", zh: "临场指挥" },
+  assistantSettingsHint: { en: "Defaults are on. Changes apply to the next match.", zh: "默认开启；修改会应用于下一场比赛。" },
   allowed: { en: "Allowed", zh: "可培养" },
   blocked: { en: "Blocked", zh: "被阻挡" },
   initialPlayer: { en: "Initial squad", zh: "初始球员" },
@@ -1553,6 +1588,8 @@ function SquadTable({
             <th scope="col">{copy(language, "columnLine")}</th>
             <th scope="col">{copy(language, "columnOvr")}</th>
             <th scope="col">{copy(language, "columnFit")}</th>
+            <th scope="col">{copy(language, "columnFitness")}</th>
+            <th scope="col">{copy(language, "columnCondition")}</th>
             <th scope="col">{copy(language, "columnTraining")}</th>
             <th scope="col">{copy(language, "columnStatus")}</th>
             {renderAction ? <th scope="col">{copy(language, "sellColumn")}</th> : null}
@@ -1593,6 +1630,18 @@ function SquadTable({
                     <span className="club-visually-hidden">{copy(language, "fitBench")}</span>
                   </>
                 )}
+              </td>
+              <td data-col="fitness" data-label={copy(language, "columnFitness")}>
+                <ConditionBar fitness={fitnessOf(player)} injury={injuryMatchesOf(player)} compact language={language} />
+              </td>
+              <td data-col="condition" data-label={copy(language, "columnCondition")}>
+                <span className={`club-condition-state${injuryMatchesOf(player) > 0 ? " is-injured" : fitnessOf(player) < 35 ? " is-tired" : ""}`}>
+                  {injuryMatchesOf(player) > 0
+                    ? copy(language, "conditionInjuryBadge", injuryMatchesOf(player))
+                    : fitnessOf(player) < 35
+                      ? copy(language, "conditionTired")
+                      : copy(language, "conditionAvailable")}
+                </span>
               </td>
               <td data-col="training" data-label={copy(language, "columnTraining")}>
                 <span className="club-training-step">
@@ -2245,10 +2294,12 @@ function PlayerAvatarSvg({ card }: { card: PlayerCard }) {
 const PlayerCardView = memo(function PlayerCardView({
   card,
   language,
+  condition,
   onOpen,
 }: {
   card: PlayerCard;
   language: Language;
+  condition?: { fitness: number; injury: number };
   onOpen?: (cardId: string) => void;
 }) {
   const tierLabel =
@@ -2309,6 +2360,18 @@ const PlayerCardView = memo(function PlayerCardView({
           </span>
         ))}
       </div>
+      {condition ? (
+        <div className="club-player-card-condition">
+          <ConditionBar fitness={condition.fitness} injury={condition.injury} compact language={language} />
+          <span className={`club-condition-state${condition.injury > 0 ? " is-injured" : condition.fitness < 35 ? " is-tired" : ""}`}>
+            {condition.injury > 0
+              ? copy(language, "conditionInjured")
+              : condition.fitness < 35
+                ? copy(language, "conditionTired")
+                : copy(language, "conditionAvailable")}
+          </span>
+        </div>
+      ) : null}
       <div className="club-player-card-foot">
         <span className={`club-player-card-role${card.starter ? " is-starter" : ""}`}>{roleLabel}</span>
         <span className="club-player-card-origin">
@@ -2457,6 +2520,55 @@ function ProgressRing({ done, total, label }: { done: number; total: number; lab
   );
 }
 
+function ConditionBar({ fitness, injury, compact = false, language }: {
+  fitness: number;
+  injury: number;
+  compact?: boolean;
+  language: Language;
+}) {
+  const tone = injury > 0 ? "injured" : fitness < 35 ? "tired" : fitness < 65 ? "low" : "good";
+  return (
+    <span className={`club-condition-bar is-${tone}${compact ? " is-compact" : ""}`} title={`${copy(language, "columnFitness")} ${fitness}`}>
+      <i style={{ width: `${Math.max(0, Math.min(100, fitness))}%` }} />
+      <b>{fitness}</b>
+      {injury > 0 ? <em className="club-condition-badge">{copy(language, "conditionInjuryBadge", injury)}</em> : null}
+    </span>
+  );
+}
+
+function ConditionDiagram({ report, label }: { report: ConditionReport; label: string }) {
+  const total = Math.max(1, report.available + report.injured + report.tired);
+  const availableWidth = (report.available / total) * 148;
+  const injuredWidth = (report.injured / total) * 148;
+  const tiredWidth = (report.tired / total) * 148;
+  return (
+    <svg className="club-diagram club-condition-diagram" viewBox="0 0 180 50" role="img" aria-label={label}>
+      <rect x="8" y="5" width="148" height="14" rx="7" fill="currentColor" opacity="0.16" />
+      <rect x="8" y="5" width={availableWidth} height="14" rx="7" className="club-condition-available" />
+      <rect x={8 + availableWidth} y="5" width={injuredWidth} height="14" className="club-condition-injured" />
+      <rect x={8 + availableWidth + injuredWidth} y="5" width={tiredWidth} height="14" rx="7" className="club-condition-tired" />
+      <text x="156" y="37" textAnchor="end" className="club-condition-diagram-avg">
+        {`${report.startersAvgFitness}`}
+      </text>
+      <text x="156" y="47" textAnchor="end" className="club-condition-diagram-caption">XI</text>
+    </svg>
+  );
+}
+
+function conditionSnapshotOf(club: ClubState): { average: number; injured: Set<string> } {
+  return {
+    average: conditionReport(club).startersAvgFitness,
+    injured: new Set(club.players.filter((player) => isInjured(player)).map((player) => player.id)),
+  };
+}
+
+type MatchConditionSummary = {
+  before: number;
+  after: number;
+  newInjuries: string[];
+  kind: "quick" | "live";
+};
+
 export default function ClubPreviewPage() {
   const [samplePreview] = useState<ClubPreview>(() => buildClubPreview());
   const [envelope, setEnvelope] = useState<Envelope | null>(null);
@@ -2470,6 +2582,9 @@ export default function ClubPreviewPage() {
   const [decorAnnouncement, setDecorAnnouncement] = useState("");
   const [latestWatchOpen, setLatestWatchOpen] = useState(false);
   const [latestReplayOpen, setLatestReplayOpen] = useState(false);
+  const [assistantAnnouncement, setAssistantAnnouncement] = useState("");
+  const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
+  const conditionBeforeRef = useRef<{ average: number; injured: Set<string> } | null>(null);
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   const [celebrationMode, setCelebrationMode] = useState<"pending" | "review">("pending");
   const celebrationAutoShown = useRef(false);
@@ -2695,6 +2810,11 @@ export default function ClubPreviewPage() {
     [starterPlayers],
   );
   const playerCards = useMemo(() => (club ? squadCards(club) : []), [club]);
+  const conditionById = useMemo(() => {
+    const map = new Map<string, { fitness: number; injury: number }>();
+    for (const player of club?.players ?? []) map.set(player.id, { fitness: fitnessOf(player), injury: injuryMatchesOf(player) });
+    return map;
+  }, [club]);
   const cardStats = useMemo(() => cardSummary(playerCards), [playerCards]);
   const crest = useMemo(() => (club ? clubCrest(club) : null), [club]);
   const starterCards = useMemo(() => playerCards.filter((card) => card.starter), [playerCards]);
@@ -2707,6 +2827,12 @@ export default function ClubPreviewPage() {
     () => (detailPlayerId ? playerCards.find((card) => card.id === detailPlayerId) ?? null : null),
     [detailPlayerId, playerCards],
   );
+  const detailPlayer = useMemo(
+    () => (club && detailPlayerId ? club.players.find((player) => player.id === detailPlayerId) ?? null : null),
+    [club, detailPlayerId],
+  );
+  const detailFitness = detailPlayer ? fitnessOf(detailPlayer) : 100;
+  const detailInjured = detailPlayer ? isInjured(detailPlayer) : false;
   const ratingTiles = useMemo(
     () => [
       { code: "DEF", label: copy(language, "defence"), value: preview.ratings.DEF },
@@ -2727,6 +2853,15 @@ export default function ClubPreviewPage() {
     const byId = new Map(club.players.map((player) => [player.id, player]));
     return club.lineup.map((id) => byId.get(id)).filter((player): player is ClubPlayer => Boolean(player));
   }, [club]);
+  const assistant = useMemo(
+    () => (club ? assistantOf(club) : { autoSquad: true, autoSubs: true }),
+    [club],
+  );
+  const clubCondition = useMemo(() => (club ? conditionReport(club) : null), [club]);
+  const unavailableStarters = useMemo(
+    () => lineupPlayers.filter((player) => !isAvailable(player)),
+    [lineupPlayers],
+  );
   const latestMatch = useMemo(() => club?.matches?.[0] ?? null, [club]);
   const recentMatches = useMemo(() => (club?.matches ?? []).slice(0, 10), [club]);
   const overviewActions = useMemo(
@@ -2966,6 +3101,8 @@ export default function ClubPreviewPage() {
     return defaultTrainableAttribute(effectivePlayer, club.facilities.trainingCentre);
   }, [club, effectivePlayer, effectivePlayerId, attributeChoice]);
 
+  const trainingInjured = Boolean(effectivePlayer && isInjured(effectivePlayer));
+  const trainingFitness = effectivePlayer ? fitnessOf(effectivePlayer) : 100;
   const trainingPreview = useMemo(() => {
     if (!club || !state || !effectivePlayer) return null;
     const player = effectivePlayer;
@@ -3053,7 +3190,7 @@ export default function ClubPreviewPage() {
   };
 
   const handleTrain = async () => {
-    if (busy || !envelope || !trainingPreview || trainingPreview.quote.blocked || !trainingPreview.affordable) return;
+    if (busy || !envelope || !trainingPreview || trainingPreview.quote.blocked || !trainingPreview.affordable || trainingInjured) return;
     const { player, quote, trained } = trainingPreview;
     setBusy(true);
     setFeedback(null);
@@ -3269,14 +3406,50 @@ export default function ClubPreviewPage() {
     }
   };
 
+  const handleAssistantChange = async (field: "autoSquad" | "autoSubs", value: boolean) => {
+    if (busy || !club || !envelope) return;
+    setBusy(true);
+    setPendingAction(`assistant:${field}`);
+    setFeedback(null);
+    try {
+      const next = await sendCommand({ type: "club.assistant", [field]: value }, envelope.revision);
+      applyEnvelope(next);
+      const label = field === "autoSquad" ? copy(language, "assistantAutoSquad") : copy(language, "assistantAutoSubs");
+      const announcement = copy(language, value ? "assistantOn" : "assistantOff", label);
+      setAssistantAnnouncement(announcement);
+      setFeedback({ kind: "success", text: announcement });
+    } catch (error) {
+      handleCommandError(error, "commandFailed");
+    } finally {
+      setBusy(false);
+      setPendingAction("");
+    }
+  };
+
   const handleMatch = async () => {
     if (busy || !club || !envelope) return;
+    const beforeCondition = conditionSnapshotOf(club);
+    conditionBeforeRef.current = beforeCondition;
+    setMatchConditionSummary(null);
     setBusy(true);
     setPendingAction("match");
     setFeedback(null);
     try {
       const next = await sendCommand({ type: "club.match", tier: matchTier }, envelope.revision);
       applyEnvelope(next);
+      const nextClub = next.state.club;
+      if (nextClub) {
+        const after = conditionReport(nextClub);
+        const newInjuries = nextClub.players
+          .filter((player) => isInjured(player) && !beforeCondition.injured.has(player.id))
+          .map((player) => player.name);
+        setMatchConditionSummary({
+          before: beforeCondition.average,
+          after: after.startersAvgFitness,
+          newInjuries,
+          kind: "quick",
+        });
+      }
       const record = next.state.club?.matches?.[0];
       const summary = record ? matchScoreline(record) : copy(language, "matchTitle");
       const possession = record
@@ -3495,6 +3668,8 @@ export default function ClubPreviewPage() {
 
   const handleStartLive = async (tier: 0 | 1 | 2 | 3) => {
     if (busy || !club || !envelope) return;
+    conditionBeforeRef.current = conditionSnapshotOf(club);
+    setMatchConditionSummary(null);
     setBusy(true);
     setPendingAction(`live-start:${tier}`);
     setFeedback(null);
@@ -3546,6 +3721,19 @@ export default function ClubPreviewPage() {
             home: record.teams?.home ?? club.name,
             matchId: record.id,
           });
+          const nextClub = next.state.club;
+          const beforeCondition = conditionBeforeRef.current;
+          if (nextClub && beforeCondition) {
+            const after = conditionReport(nextClub);
+            setMatchConditionSummary({
+              before: beforeCondition.average,
+              after: after.startersAvgFitness,
+              newInjuries: nextClub.players
+                .filter((player) => isInjured(player) && !beforeCondition.injured.has(player.id))
+                .map((player) => player.name),
+              kind: "live",
+            });
+          }
           setFeedback({
             kind: "success",
             text: copy(
@@ -3974,7 +4162,17 @@ export default function ClubPreviewPage() {
               </select>
               <small>{copy(language, "trainingDefaultHint")}</small>
             </label>
-            <fieldset className="club-attr-fieldset" disabled={busy}>
+            <div className="club-train-condition" data-train-injured={trainingInjured ? "true" : "false"}>
+              <ConditionBar fitness={trainingFitness} injury={effectivePlayer ? injuryMatchesOf(effectivePlayer) : 0} language={language} />
+              <span className={`club-condition-state${trainingInjured ? " is-injured" : trainingFitness < 35 ? " is-tired" : ""}`}>
+                {trainingInjured
+                  ? copy(language, "trainingInjured")
+                  : trainingFitness < 35
+                    ? copy(language, "conditionTired")
+                    : copy(language, "conditionAvailable")}
+              </span>
+            </div>
+            <fieldset className="club-attr-fieldset" disabled={busy || trainingInjured}>
               <legend>{copy(language, "trainingAttribute")}</legend>
               <div className="club-attr-picker">
                 {TRAINABLE_ATTRIBUTES.map((entry) => {
@@ -4030,8 +4228,13 @@ export default function ClubPreviewPage() {
                 );
               })}
             </div>
-            <p className={`club-status-line${trainingPreview.quote.blocked ? " is-blocked" : ""}`}>
-              {trainingPreview.quote.blocked ? (
+            <p className={`club-status-line${trainingPreview.quote.blocked || trainingInjured ? " is-blocked" : ""}`}>
+              {trainingInjured ? (
+                <>
+                  <span className="club-pill club-pill-blocked">{copy(language, "conditionInjured")}</span>
+                  <span className="club-blocked-reason">{copy(language, "clubDetailInjured")}</span>
+                </>
+              ) : trainingPreview.quote.blocked ? (
                 <>
                   <span className="club-pill club-pill-blocked">{copy(language, "trainingBlocked")}</span>
                   <span className="club-blocked-reason" lang={language === "zh" ? "en-GB" : undefined}>
@@ -4050,13 +4253,15 @@ export default function ClubPreviewPage() {
                 type="button"
                 className="club-button club-button-primary"
                 onClick={() => void handleTrain()}
-                disabled={busy || !trainingPreview.affordable}
+                disabled={busy || !trainingPreview.affordable || trainingInjured}
               >
                 {busy
                   ? copy(language, "trainingSaving")
-                  : trainingPreview.quote.blocked
-                    ? copy(language, "trainingBlockedAction")
-                    : copy(language, "trainingConfirm", trainingPreview.quote.price)}
+                  : trainingInjured
+                    ? copy(language, "trainingInjured")
+                    : trainingPreview.quote.blocked
+                      ? copy(language, "trainingBlockedAction")
+                      : copy(language, "trainingConfirm", trainingPreview.quote.price)}
               </button>
               {receiptText ? (
                 <p className="club-receipt" role="status" aria-live="polite">
@@ -5226,6 +5431,47 @@ export default function ClubPreviewPage() {
         <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "matchIntro")}</p></details>
       </div>
       <div className="club-panel club-match-panel">
+        <div className="club-match-assistant-row">
+          <details className="club-assistant" id="club-assistant" data-assistant-panel>
+            <summary>{copy(language, "assistantTitle")}</summary>
+            <div className="club-assistant-body">
+              <label className="club-assistant-toggle">
+                <input
+                  type="checkbox"
+                  checked={assistant.autoSquad}
+                  onChange={(event) => void handleAssistantChange("autoSquad", event.target.checked)}
+                  disabled={busy}
+                  data-assistant-auto-squad
+                />
+                <span>
+                  <b>{copy(language, "assistantAutoSquad")}</b>
+                  <small>{copy(language, "assistantSettingsHint")}</small>
+                </span>
+              </label>
+              <label className="club-assistant-toggle">
+                <input
+                  type="checkbox"
+                  checked={assistant.autoSubs}
+                  onChange={(event) => void handleAssistantChange("autoSubs", event.target.checked)}
+                  disabled={busy}
+                  data-assistant-auto-subs
+                />
+                <span>
+                  <b>{copy(language, "assistantAutoSubs")}</b>
+                </span>
+              </label>
+              <p className="club-assistant-note">{copy(language, "assistantNote")}</p>
+              <p className="club-assistant-announcement" role="status" aria-live="polite">{assistantAnnouncement}</p>
+            </div>
+          </details>
+          {unavailableStarters.length ? (
+            <p className="club-pre-match-note" role="status" data-unavailable-starters={unavailableStarters.length}>
+              {assistant.autoSquad
+                ? copy(language, "assistantPreMatch", unavailableStarters.length)
+                : copy(language, "assistantPreMatchManual", unavailableStarters.length)}
+            </p>
+          ) : null}
+        </div>
         <details className="club-new-match" id="club-new-match-controls">
           <summary>{copy(language, "newMatch")}</summary>
         <fieldset className="club-match-controls" disabled={busy}>
@@ -5317,6 +5563,32 @@ export default function ClubPreviewPage() {
                 {copy(language, "matchPlayAgain")}
               </button>
             </div>
+            {matchConditionSummary ? (
+              <div
+                className="club-condition-summary"
+                role="status"
+                aria-live="polite"
+                data-condition-summary
+                data-condition-before={matchConditionSummary.before}
+                data-condition-after={matchConditionSummary.after}
+                data-condition-new-injuries={matchConditionSummary.newInjuries.join("|")}
+                data-condition-kind={matchConditionSummary.kind}
+              >
+                <div className="club-condition-summary-head">
+                  <b>{copy(language, "conditionSummaryTitle")}</b>
+                  <span>{copy(language, matchConditionSummary.kind === "quick" ? "conditionSummaryQuick" : "conditionSummaryLive")}</span>
+                </div>
+                <div className="club-condition-summary-row">
+                  <span>{copy(language, "conditionSummaryAverage", matchConditionSummary.before, matchConditionSummary.after)}</span>
+                  <ConditionBar fitness={matchConditionSummary.after} injury={0} compact language={language} />
+                </div>
+                <p className={matchConditionSummary.newInjuries.length ? "is-injured" : undefined}>
+                  {matchConditionSummary.newInjuries.length
+                    ? copy(language, "conditionSummaryNewInjuries", matchConditionSummary.newInjuries.join(" · "))
+                    : copy(language, "conditionSummaryNoInjuries")}
+                </p>
+              </div>
+            ) : null}
             <details className="club-section-more">
               <summary>{copy(language, "moreDetails")}</summary>
             <dl className="club-match-explanation">
@@ -5868,6 +6140,22 @@ export default function ClubPreviewPage() {
           </div>
         </div>
       </section>
+
+      {clubCondition ? (
+        <section className="club-overview-condition-strip" aria-label={copy(language, "conditionTitle")}>
+          <span className="club-overview-condition-label">{copy(language, "conditionTitle")}</span>
+          <ConditionDiagram
+            report={clubCondition}
+            label={copy(language, "conditionOverviewLabel", clubCondition.available, clubCondition.injured, clubCondition.tired, clubCondition.startersAvgFitness)}
+          />
+          <span className="club-overview-condition-legend">
+            <span className="is-available"><i aria-hidden="true" />{`${clubCondition.available} ${copy(language, "conditionAvailable")}`}</span>
+            <span className="is-injured"><i aria-hidden="true" />{`${clubCondition.injured} ${copy(language, "conditionInjured")}`}</span>
+            <span className="is-tired"><i aria-hidden="true" />{`${clubCondition.tired} ${copy(language, "conditionTired")}`}</span>
+          </span>
+          <span className="club-overview-condition-avg">{copy(language, "conditionStarterAvg", clubCondition.startersAvgFitness)}</span>
+        </section>
+      ) : null}
 
       <section className="club-overview-actions" aria-labelledby="club-overview-next-heading">
         <h3 id="club-overview-next-heading">{copy(language, "overviewNext")}</h3>
@@ -6492,7 +6780,7 @@ export default function ClubPreviewPage() {
                   </div>
                   <div className="club-player-card-grid">
                     {starterCards.map((card) => (
-                      <PlayerCardView key={card.id} card={card} language={language} onOpen={setDetailPlayerId} />
+                      <PlayerCardView key={card.id} card={card} language={language} condition={conditionById.get(card.id)} onOpen={setDetailPlayerId} />
                     ))}
                   </div>
                 </section>
@@ -6507,7 +6795,7 @@ export default function ClubPreviewPage() {
                   </div>
                   <div className="club-player-card-grid">
                     {benchCards.map((card) => (
-                      <PlayerCardView key={card.id} card={card} language={language} onOpen={setDetailPlayerId} />
+                      <PlayerCardView key={card.id} card={card} language={language} condition={conditionById.get(card.id)} onOpen={setDetailPlayerId} />
                     ))}
                   </div>
                 </section>
@@ -6827,6 +7115,16 @@ export default function ClubPreviewPage() {
                       : copy(language, "clubDetailOriginAcademy")}
                   </span>
                 </div>
+                <div className="club-player-detail-condition" data-detail-injured={detailInjured ? "true" : "false"}>
+                  <ConditionBar fitness={detailFitness} injury={detailPlayer ? injuryMatchesOf(detailPlayer) : 0} language={language} />
+                  <span className={`club-condition-state${detailInjured ? " is-injured" : detailFitness < 35 ? " is-tired" : ""}`}>
+                    {detailInjured
+                      ? copy(language, "conditionInjured")
+                      : detailFitness < 35
+                        ? copy(language, "conditionTired")
+                        : copy(language, "conditionAvailable")}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="club-player-detail-body">
@@ -6874,14 +7172,16 @@ export default function ClubPreviewPage() {
                     const check = canTrainDetail(club!, detailData, attribute.key);
                     const price = attribute.price;
                     const insufficient = typeof price === "number" && price > funds;
-                    const disabled = busy || !check.ok || insufficient;
-                    const status = attribute.blocked
-                      ? detailBlockedReason(attribute.blocked)
-                      : typeof price === "number"
-                        ? insufficient
-                          ? copy(language, "clubDetailInsufficient", price)
-                          : copy(language, "clubDetailNext", price)
-                        : copy(language, "clubDetailNoTrain");
+                    const disabled = busy || !check.ok || insufficient || detailInjured;
+                    const status = detailInjured
+                      ? copy(language, "clubDetailInjured")
+                      : attribute.blocked
+                        ? detailBlockedReason(attribute.blocked)
+                        : typeof price === "number"
+                          ? insufficient
+                            ? copy(language, "clubDetailInsufficient", price)
+                            : copy(language, "clubDetailNext", price)
+                          : copy(language, "clubDetailNoTrain");
                     return (
                       <li key={attribute.key} className={`club-player-detail-row${disabled ? " is-disabled" : ""}`} data-attribute-key={attribute.key}>
                         <span className="club-player-detail-attribute-label">{attribute.label}</span>
