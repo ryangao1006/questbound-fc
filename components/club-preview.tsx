@@ -1380,7 +1380,14 @@ class CommandError extends Error {
   }
 }
 
+const isStaticDemo = () => typeof window !== "undefined" && Boolean((window as unknown as { __QFC_DEMO__?: boolean }).__QFC_DEMO__);
+
 async function readEnvelope(signal?: AbortSignal): Promise<Envelope> {
+  if (isStaticDemo()) {
+    const { demoRead } = await import("@/lib/club-demo-store");
+    const envelope = demoRead();
+    return { state: envelope.state, revision: envelope.revision, updatedAt: envelope.updatedAt };
+  }
   const response = await fetch("/api/state", {
     cache: "no-store",
     credentials: "same-origin",
@@ -1400,6 +1407,16 @@ async function readEnvelope(signal?: AbortSignal): Promise<Envelope> {
 /** Every club action goes through the real command endpoint; nothing is written to storage directly. */
 async function sendCommand(command: Record<string, unknown>, revision: number): Promise<Envelope> {
   const operationId = crypto.randomUUID();
+  if (isStaticDemo()) {
+    const { demoSend } = await import("@/lib/club-demo-store");
+    try {
+      const envelope = demoSend(command, revision, operationId);
+      return { state: envelope.state, revision: envelope.revision, updatedAt: envelope.updatedAt };
+    } catch (error) {
+      const status = (error as { status?: number }).status ?? 400;
+      throw new CommandError(error instanceof Error ? error.message : "Demo command failed", status);
+    }
+  }
   const response = await fetch("/api/command", {
     method: "POST",
     cache: "no-store",

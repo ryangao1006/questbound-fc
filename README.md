@@ -4,6 +4,8 @@ A football **club-management game** built on top of a real, working personal pla
 
 > Personal project. The game layer is fully functional and runs locally against the same planner document; nothing is simulated on the planning side.
 
+**[▶ Play the browser demo](https://ryangao1006.github.io/questbound-fc/)** — a static build where the whole club game runs client-side (local storage, no account, no server). The planner and the command API need the hosted/server build.
+
 ![Club overview](docs/screenshots/overview.png)
 
 ## What it is

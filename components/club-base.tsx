@@ -16,7 +16,11 @@ const LazyClubBase3D=lazy(()=>import('./club-base-3d'));
 
 export default function ClubBase(){
  const [state,setState]=useState<PlannerState|null>(null),[loading,setLoading]=useState(true),[failed,setFailed]=useState(false),[webgl,setWebgl]=useState<boolean|null>(null);
- useEffect(()=>{let live=true;void (async()=>{try{const response=await fetch('/api/state',{cache:'no-store'});if(!response.ok)throw new Error('no session');const body=await response.json() as {state:PlannerState};if(live)setState(body.state)}catch{if(live){setFailed(true)}}finally{if(live)setLoading(false)}})();return()=>{live=false}},[]);
+ useEffect(()=>{let live=true;void (async()=>{try{
+ const demo=typeof window!=='undefined'&&Boolean((window as unknown as {__QFC_DEMO__?:boolean}).__QFC_DEMO__);
+ if(demo){const {demoRead}=await import('@/lib/club-demo-store');const envelope=demoRead();if(live)setState(envelope.state);return}
+ const response=await fetch('/api/state',{cache:'no-store'});if(!response.ok)throw new Error('no session');const body=await response.json() as {state:PlannerState};if(live)setState(body.state)
+ }catch{if(live){setFailed(true)}}finally{if(live)setLoading(false)}})();return()=>{live=false}},[]);
  useEffect(()=>{
   try{
    const canvas=document.createElement('canvas');

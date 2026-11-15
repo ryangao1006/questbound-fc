@@ -69,3 +69,4 @@ __pycache__/
 /assets-source/
 /background/wrangler.local.jsonc
 /PLAN-STATUS.md
+dist-demo
