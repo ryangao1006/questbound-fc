@@ -1,0 +1,73 @@
+{
+  "note": "Published model assets are immutable. Add a new version for future models so older backups remain reconstructable.",
+  "versions": {
+    "human-v1": {
+      "directory": "public/assets/player-v1",
+      "files": {
+        "player.glb": {
+          "bytes": 8610816,
+          "sha256": "7e82f423b86ccc6d9832e9e79bd4ea6f941427f75f1ff674c43668bf030afddb"
+        },
+        "player-mobile.glb": {
+          "bytes": 5649696,
+          "sha256": "19b8052009e26f6b43a0f7bbe269ea28aa441a6ed6e06d9641b5325dd42b66ec"
+        }
+      }
+    },
+    "human-v2": {
+      "directory": "public/assets/player-v2",
+      "files": {
+        "player-match.glb": {
+          "bytes": 3251340,
+          "sha256": "99221e6b27038ebc553f117faaa375afedddb02bfe24b5d757fa8dd829bd0fcf"
+        },
+        "player.glb": {
+          "bytes": 13420940,
+          "sha256": "0890138840add6f0c767875cd828709590a8872212c84da24fce735ee7651e3f"
+        },
+        "player-mobile.glb": {
+          "bytes": 6129688,
+          "sha256": "8926c021d121743569963dea334bff1f92de76942d64195c0a1bb47821c386f3"
+        },
+        "LICENSES.json": {
+          "bytes": 3204,
+          "sha256": "10401af65f55fb4284c197746a7b705eb44f861a3dc27e066c7e5d0af25e55eb"
+        },
+        "manifest.json": {
+          "bytes": 26177,
+          "sha256": "c3607356ba073d596ba3311227cc06029e6c75bf9f722a00c4f7a571d022e70b"
+        }
+      }
+    },
+    "menu-v2": {
+      "directory": "public/assets/menu-v2",
+      "files": {
+        "stadium-light.svg": {
+          "bytes": 1616,
+          "sha256": "81b560ba54cc59fd2f89fc2c340227192b18bcf9280552d3b3b125029b86c6c1"
+        },
+        "manifest.json": {
+          "bytes": 369,
+          "sha256": "38b3dc4d1d71615c668c0f2571255512a7cba9a846e0b0d02a05cb9081e42f9f"
+        }
+      }
+    },
+    "comic-human-v1": {
+      "directory": "public/assets/comic-human-v1",
+      "files": {
+        "sample-sheet.svg": {
+          "bytes": 5757,
+          "sha256": "2dc2558bbe3ef339e78ad95957e1a28ad87bc7b7b56933f970649ecef35c3f5b"
+        },
+        "manifest.json": {
+          "bytes": 2124,
+          "sha256": "7f1da340062caea9123919e745bb3c852079d8fc4112adaa27eaa8083cde713c"
+        },
+        "LICENSES.json": {
+          "bytes": 276,
+          "sha256": "65a81180c66b52b4f7b34a971462c7e8b4357ed6672bdf997ac5f5a051ab1d6f"
+        }
+      }
+    }
+  }
+}

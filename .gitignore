@@ -57,8 +57,11 @@ __pycache__/
 **/.wrangler/
 /cloud/work/
 
-# Private deployment metadata (kept locally for the hosted build)
-/.openai/
+# Private deployment metadata (kept locally for the hosted build);
+# the two public immutability contracts are committed so CI can verify assets/engines.
+/.openai/*
+!/.openai/asset-contract.json
+!/.openai/football-engine-contract.json
 /.sites-runtime/
 /cloud/wrangler.local.jsonc
 

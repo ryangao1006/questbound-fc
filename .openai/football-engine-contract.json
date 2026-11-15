@@ -1,0 +1,19 @@
+{
+  "note": "Retain published simulation and balance versions to resume saved matches and replays across updates. Add a new version; never overwrite published files.",
+  "versions": {
+    "fixed-football-1": {
+      "lib/football-engine/stats-v1.ts": "1c6e98237ba56861cfaf7107f5101660f5bef0790e6903d367ed041e58e810bf",
+      "lib/football-engine/v1.ts": "412824a614d2e42353cdbcefda5a45a8d251ed7846b2e8ee356b769498261efb",
+      "lib/football-engine/shared-v1.ts": "0a8ca1adcc6a3363881994bbdf8105fc9d2222963a64a1a4dceaa71c8f0a07ad"
+    },
+    "fixed-football-2": {
+      "lib/football-engine/v2.ts": "47da03c0aa0d0b1e550f15f77f9c4645dfe48a39448a8c77bbb8744b91f322f7"
+    },
+    "fixed-football-3": {
+      "lib/football-engine/v3.ts": "f3bbb310e86a7e27b021e8522d8cc901ad7598e36dcf168def54b8ca75a1a9c0"
+    },
+    "fixed-football-4": {
+      "lib/football-engine/v4.ts": "5d31c39254a113da6f24484da297224515c111673ec8b66c9ed918fa74a0ef79"
+    }
+  }
+}
