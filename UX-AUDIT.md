@@ -25,12 +25,12 @@ Scope: the hosted planner shell, `/club` (four tabs), `/club/base` (3D base + ro
 
 | Area | Idea | Why |
 |---|---|---|
-| Demo | “Top up / reset” controls inside the demo banner (reset exists, top-up does not) | The 5,000 demo funds cover a full tour, but a very long session of signings can still exhaust them. |
+| Demo | ✅ **Done**: “Top up +5,000” and “Reset demo” live in the demo bar; an offline service worker precaches the shell and hashed assets (offline reload verified after one online visit). | The service worker is demo-only; the main app has its own offline layer. |
 | Error UX | Cover the remaining command errors (migration, save/conflict) and translate 409s into “reload and retry” actions | Full coverage makes failures self-explanatory. |
 | Planner ↔ club | Show club fund/XP deltas in the task-completion toast and link straight to `/club` | Makes the game loop visible from the planner side. |
-| Accessibility | Run axe-core on all four tabs and both 3D surfaces; add a skip link and verify live-region ordering under rapid commands | Current checks are manual; automated coverage would catch regressions. |
+| Accessibility | ✅ **Done**: axe-core 4.14 audit over the four tabs, 3D base and demo, desktop + 390 px — three issues found and fixed, **0 violations** on re-run. Remaining: add a skip link and verify live-region ordering under rapid commands. | The audit is manual (not in CI) so regressions could creep back in. |
 | Mobile | Real-device pass (touch, safe-area insets, 30 FPS target) and sticky primary action on mobile | The harness can only emulate 390 px. |
-| Offline | Add a service worker to the static demo so the game opens offline | The main app already has offline support; the demo does not. |
+| Offline | ✅ **Done** for the demo (`demo/public/sw.js`). | Only the shell and hashed assets are cached; large 3D chunks cache on first use. |
 | Performance | Code-split club tabs (training/transfers/competitions) and preload the roster on intent (hover/tap) | Initial club JS is still ~650 KB in the demo. |
 
 ## How this was verified

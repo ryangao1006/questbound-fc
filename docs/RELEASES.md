@@ -582,3 +582,7 @@ A WCAG 2.1 A/AA audit with **axe-core 4.14** ran over the four `/club` tabs, the
 The static demo gained a **Top up +5,000** control beside Reset (demo-only, writes only the browser document) and an **offline service worker** (`demo/public/sw.js`): install precaches the shell and its hashed assets parsed from `index.html`, fetch is network-first with cache fallback (navigation falls back to the cached shell). Verified: after one online visit the registration is active, the cache holds the shell/assets, and an offline reload still renders the demo UI; the top-up moved 5,150 → 10,150 FC. The SW path was fixed to `import.meta.env.BASE_URL` after a first attempt resolved under `/assets/` (404).
 
 Validation: typecheck, **549 tests**, migration checks, production build and static demo build. Schema remains 8.
+
+### Audit result
+
+A final axe-core pass over the overview, all three other tabs, the 3D base and the static demo (1440 and 390 px) reports **zero WCAG 2.1 A/AA violations**.
