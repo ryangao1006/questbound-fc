@@ -18,6 +18,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # vite.config.ts reads the private Site hosting metadata; provide a placeholder
+      # (the real ids stay out of the repository).
+      - name: Placeholder hosting metadata for typecheck
+        run: |
+          mkdir -p .openai
+          printf '{"d1":"DB","r2":"BUCKET","capabilities":["mcp"],"project_id":"appgprj_00000000000000000000000000000000"}' > .openai/hosting.json
       - run: npm run typecheck
       - run: npm test
       - run: python3 tests/migration_test.py
