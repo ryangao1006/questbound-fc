@@ -1,0 +1,18 @@
+"use client";
+import {useState,useEffect,useId,useRef} from 'react';
+import {CalendarDays,ChevronLeft,ChevronRight,X} from 'lucide-react';
+import {localeFor} from '@/lib/i18n';
+import {calendarGrid,dayAfter} from '@/lib/quest-journal';
+import {useLocale} from './locale';
+export function PlannerDateField({label,value,today,onChange,align='left'}:{label:string;value:string;today:string;onChange:(day:string)=>void;align?:'left'|'right'}){
+ const {t,language}=useLocale(),id=useId(),root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);const [open,setOpen]=useState(false),[month,setMonth]=useState((value||today).slice(0,7)+'-01');
+ const format=(day:string,options:Intl.DateTimeFormatOptions)=>new Intl.DateTimeFormat(localeFor(language),{...options,timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'));
+ const close=()=>{setOpen(false);trigger.current?.focus()};
+ useEffect(()=>{if(!open)return;const outside=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false)};document.addEventListener('pointerdown',outside);return()=>document.removeEventListener('pointerdown',outside)},[open]);
+ useEffect(()=>{if(open)root.current?.querySelector<HTMLButtonElement>(`[data-day="${value||today}"]`)?.focus()},[open]);
+ const choose=(day:string)=>{onChange(day);close()};
+ const moveMonth=(amount:number)=>{const date=new Date(month+'T12:00:00Z');date.setUTCMonth(date.getUTCMonth()+amount);setMonth(date.toISOString().slice(0,10))};
+ return <div className={`planner-date-field align-${align}`} ref={root} onKeyDown={event=>{if(open&&event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}}}><span id={id+'-label'}>{label}</span><button type="button" ref={trigger} className={`planner-date-trigger ${value?'has-value':''}`} aria-labelledby={id+'-label '+id+'-value'} aria-expanded={open} aria-controls={id+'-calendar'} onClick={()=>{if(!open)setMonth((value||today).slice(0,7)+'-01');setOpen(!open)}}><CalendarDays size={15}/><span id={id+'-value'}>{value?format(value,{year:'numeric',month:'short',day:'numeric'}):t('Choose date')}</span></button>
+ {open&&<div id={id+'-calendar'} className="planner-date-popover" data-escape-layer role="group" aria-label={t('Choose date')}><header><button type="button" aria-label={t('Previous month')} onClick={()=>moveMonth(-1)}><ChevronLeft size={17}/></button><strong aria-live="polite">{format(month,{year:'numeric',month:'long'})}</strong><button type="button" aria-label={t('Next month')} onClick={()=>moveMonth(1)}><ChevronRight size={17}/></button></header><div className="planner-date-week" aria-hidden="true">{calendarGrid(month).slice(0,7).map(day=><span key={day}>{format(day,{weekday:'narrow'})}</span>)}</div><div className="planner-date-grid">{calendarGrid(month).map(day=><button type="button" key={day} data-day={day} className={`${day===value?'selected':''} ${day===today?'today':''} ${day.slice(0,7)!==month.slice(0,7)?'outside':''}`} aria-label={format(day,{dateStyle:'full'})} aria-pressed={day===value} onClick={()=>choose(day)} onKeyDown={event=>{const amount=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?7:event.key==='ArrowUp'?-7:0;if(!amount)return;event.preventDefault();const next=dayAfter(day,amount);setMonth(next.slice(0,7)+'-01');requestAnimationFrame(()=>root.current?.querySelector<HTMLButtonElement>(`[data-day="${next}"]`)?.focus())}}>{Number(day.slice(8))}</button>)}</div><footer><button type="button" onClick={()=>choose(today)}>{t('Today')}</button><button type="button" onClick={()=>choose('')}><X size={12}/>{t('No date')}</button></footer></div>}
+ </div>
+}

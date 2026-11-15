@@ -1,0 +1,9 @@
+export function base64url(bytes:Uint8Array){let raw="";for(const b of bytes)raw+=String.fromCharCode(b);return btoa(raw).replaceAll("+","-").replaceAll("/","_").replaceAll("=","");}
+export function unbase64(value:string){const raw=atob(value.replaceAll("-","+").replaceAll("_","/"));return Uint8Array.from(raw,c=>c.charCodeAt(0));}
+export function newKey(){return base64url(crypto.getRandomValues(new Uint8Array(32)));}
+export async function hash(value:string|Uint8Array){const bytes=typeof value==="string"?new TextEncoder().encode(value):value;return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes as BufferSource)),b=>b.toString(16).padStart(2,"0")).join("");}
+async function key(value:string,usage:KeyUsage[]){const bytes=unbase64(value);if(bytes.length!==32)throw new Error("Enter a valid 32-byte recovery key.");return crypto.subtle.importKey("raw",bytes as BufferSource,"AES-GCM",false,usage);}
+export async function encrypt(bytes:Uint8Array,password:string){const iv=crypto.getRandomValues(new Uint8Array(12));const encoded=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},await key(password,["encrypt"]),bytes as BufferSource));const result=new Uint8Array(iv.length+encoded.length);result.set(iv);result.set(encoded,12);return result;}
+export async function decrypt(bytes:Uint8Array,password:string){try{return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:bytes.slice(0,12)},await key(password,["decrypt"]),bytes.slice(12) as BufferSource));}catch{throw new Error("This archive could not be verified. Check its recovery key and file contents.");}}
+export async function sealJSON(value:unknown,password:string){return base64url(await encrypt(new TextEncoder().encode(JSON.stringify(value)),password));}
+export async function openJSON<T>(ciphertext:string,password:string):Promise<T>{return JSON.parse(new TextDecoder().decode(await decrypt(unbase64(ciphertext),password)));}

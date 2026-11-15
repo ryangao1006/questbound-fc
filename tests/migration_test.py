@@ -1,0 +1,52 @@
+import unittest,sqlite3,json,pathlib,tempfile
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+class MigrationChecks(unittest.TestCase):
+ def test_upgrade_preserves_existing_state_and_history(self):
+  db=sqlite3.connect(':memory:')
+  files=sorted((ROOT/'drizzle').glob('*.sql'))
+  db.executescript(files[0].read_text())
+  original={'schemaVersion':1,'tasks':[{'id':'old-task','title':'Keep my history','done':True}], 'rewards':[{'id':'task:old-task','points':10,'active':True}],'sessions':[{'id':'old-session','seconds':1500}], 'settings':{'name':'Ryan'}}
+  raw=json.dumps(original)
+  db.execute('INSERT INTO qi_states(owner,revision,schema_version,data,updated_at) VALUES(?,?,?,?,?)',('upgrade-test',42,1,raw,'2026-11-12T00:00:00Z'))
+  db.execute('INSERT INTO qi_operations(owner,id,revision,created_at) VALUES(?,?,?,?)',('upgrade-test','old-op',42,'2026-11-12T00:00:00Z'))
+  db.commit()
+  for file in files[1:]:db.executescript(file.read_text())
+  row=db.execute('SELECT revision,data FROM qi_states WHERE owner=?',('upgrade-test',)).fetchone()
+  self.assertEqual(row,(42,raw))
+  self.assertEqual(db.execute('SELECT COUNT(*) FROM qi_operations').fetchone()[0],1)
+  self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0],'ok')
+ def test_version_compare_and_swap_does_not_overwrite_newer_edits(self):
+  db=sqlite3.connect(':memory:');db.executescript(sorted((ROOT/'drizzle').glob('*.sql'))[0].read_text())
+  db.execute('INSERT INTO qi_states(owner,revision,schema_version,data,updated_at) VALUES(?,?,?,?,?)',('a',0,3,'{}','now'))
+  first=db.execute('UPDATE qi_states SET data=?,revision=revision+1 WHERE owner=? AND revision=?',('{"tasks":["newer"]}','a',0))
+  self.assertEqual(first.rowcount,1)
+  stale=db.execute('UPDATE qi_states SET data=?,revision=revision+1 WHERE owner=? AND revision=?',('{"tasks":["stale"]}','a',0))
+  self.assertEqual(stale.rowcount,0)
+  self.assertEqual(db.execute('SELECT data FROM qi_states').fetchone()[0],'{"tasks":["newer"]}')
+ def test_delivery_claim_is_unique_per_device_and_reminder(self):
+  db=sqlite3.connect(':memory:')
+  for file in sorted((ROOT/'drizzle').glob('*.sql')):db.executescript(file.read_text())
+  for _ in range(3):db.execute("INSERT OR IGNORE INTO qi_deliveries(owner,tag,device,status,at) VALUES('a','reminder-1','phone','pending','now')")
+  self.assertEqual(db.execute('SELECT COUNT(*) FROM qi_deliveries').fetchone()[0],1)
+  a=db.execute("UPDATE qi_deliveries SET status='sending' WHERE owner='a' AND tag='reminder-1' AND device='phone' AND status='pending'")
+  self.assertEqual(a.rowcount,1)
+  b=db.execute("UPDATE qi_deliveries SET status='sending' WHERE owner='a' AND tag='reminder-1' AND device='phone' AND status='pending'")
+  self.assertEqual(b.rowcount,0)
+ def test_career_upgrade_is_additive_and_progress_compare_and_swap_is_atomic(self):
+  db=sqlite3.connect(':memory:')
+  for file in sorted((ROOT/'drizzle').glob('*.sql')):db.executescript(file.read_text())
+  db.execute("INSERT INTO qi_states(owner,revision,schema_version,data,updated_at) VALUES(?,?,?,?,?)", ("a",5,6,json.dumps({"xp":90}),"now"))
+  db.execute("INSERT INTO qi_careers(owner,id,revision,data,last_operation,updated_at) VALUES(?,?,?,?,?,?)",("a","career",2,json.dumps({"points":0}),"old","now"))
+  db.commit()
+  with db:
+   written=db.execute("UPDATE qi_states SET data=?,revision=revision+1,last_operation='reward' WHERE owner='a' AND revision=5 AND EXISTS(SELECT 1 FROM qi_careers WHERE owner='a' AND revision=2)", ('{"xp":100}',))
+   db.execute("UPDATE qi_careers SET data=?,revision=revision+1,last_operation='reward' WHERE owner='a' AND revision=2 AND EXISTS(SELECT 1 FROM qi_states WHERE owner='a' AND last_operation='reward')", ('{"points":4}',))
+   db.execute("INSERT OR IGNORE INTO qi_career_receipts VALUES('a','career','level:2','level','{}','now')")
+  self.assertEqual(written.rowcount,1)
+  self.assertEqual(db.execute("SELECT data FROM qi_careers").fetchone()[0],'{"points":4}')
+  stale=db.execute("UPDATE qi_states SET data='stale' WHERE owner='a' AND revision=5 AND EXISTS(SELECT 1 FROM qi_careers WHERE owner='a' AND revision=2)")
+  self.assertEqual(stale.rowcount,0)
+  for _ in range(3):db.execute("INSERT OR IGNORE INTO qi_career_receipts VALUES('a','career','level:2','level','{}','now')")
+  self.assertEqual(db.execute('SELECT COUNT(*) FROM qi_career_receipts').fetchone()[0],1)
+  self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0],'ok')
+if __name__=='__main__':unittest.main()

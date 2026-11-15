@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{acquireGamePresentation,gamePresentationActive,subscribeGamePresentation}from'../lib/game-presentation.ts';
+test('overlapping game views suspend background rendering until the last viewer releases',()=>{let changes=0;const off=subscribeGamePresentation(()=>changes++),a=acquireGamePresentation(),b=acquireGamePresentation();assert(gamePresentationActive());a();a();assert(gamePresentationActive());b();assert.equal(gamePresentationActive(),false);assert.equal(changes,4);off()});

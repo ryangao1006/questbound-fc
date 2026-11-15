@@ -1,0 +1,45 @@
+/* Last in cascade: explicit foreground/background pairs, shared by body portals. */
+:root,[data-theme="night-stadium"]{--surface:#11263d;--surface-high:#1a3652;--surface-low:#0b1e33;--text:#f4f7fc;--muted:#b6c8dc;--line:#39516a;--accent:#ffe44c;--accent-ink:#142438;--selection:#ffe44c;--selection-ink:#142438;--shell-text:#f4f7fc;--shell-muted:#c7d9ed;--danger-text:#ffaaa6;--danger-surface:#482730}
+:root[data-theme="classic-career"],[data-theme="classic-career"]{--surface:#f3f6fa;--surface-high:#e1e9f2;--surface-low:#d5dfeb;--text:#152942;--muted:#4a6079;--line:#b9c9dc;--accent:#234c83;--accent-ink:#ffffff;--selection:#ffe44c;--selection-ink:#142438;--danger-text:#a51e2c;--danger-surface:#fff0f0}
+:is(.card,.game-tile,.settings-card,.theme-popover,.sync-popover,.modal,.toast,.ws-main-workspace,.board-task){color:var(--text)}
+:is(.theme-popover,.sync-popover,.modal,.toast){background:var(--surface);border-color:var(--line)}
+:is(.theme-popover,.sync-popover,.modal,.toast) :is(h1,h2,h3,h4,label,legend,summary){color:var(--text)}
+:is(.theme-popover,.sync-popover,.modal,.toast) :is(p,.muted,small){color:var(--muted)}
+:is(.theme-popover,.sync-popover) button{color:var(--text)}
+:is(.modal,.toast,.football-overlays) .primary{background:var(--selection);color:var(--selection-ink);border-color:transparent}
+:is(.modal,.toast,.football-overlays) :is(.secondary,.text-button,.icon-button){color:var(--text)}
+:is(.modal,.football-overlays) :is(input,select,textarea){color:var(--text);background:var(--surface-high);border-color:var(--line);color-scheme:normal}
+:root[data-theme="night-stadium"] :is(.modal,.football-overlays) :is(input,select,textarea){color-scheme:dark}
+:is(.modal,.football-overlays) :is(input,textarea)::placeholder{color:var(--muted);opacity:1}
+:is(.theme-popover,.sync-popover,.modal,.toast) :is(a,.task-source){color:var(--accent)}
+.football-app.comic-ui :is(.card,.game-tile,.settings-card,.theme-popover,.sync-popover){color:var(--text)}
+.football-app.comic-ui :is(.card,.game-tile,.settings-card) :is(h2,h3,h4,label,legend){color:var(--text)}
+.football-app.comic-ui :is(.card,.game-tile,.settings-card) .muted{color:var(--muted)}
+.football-app.comic-ui .page-heading{color:var(--shell-text)}
+.football-app.comic-ui .page-heading :is(h1,.eyebrow){color:var(--shell-text)}
+.football-app.comic-ui .page-heading p{color:var(--shell-muted)}
+.football-app.comic-ui .settings-tabs{background:#0b1e33;color:var(--shell-text);border-bottom:1px solid #597087}
+.football-app.comic-ui .settings-tabs button{color:var(--shell-muted);min-height:44px;padding:8px 12px}
+.football-app.comic-ui .settings-tabs button.active{color:#142438;background:#ffe44c;border-color:#ffe44c}
+.football-app.comic-ui .calendar-toolbar{color:var(--text);background:var(--surface);padding:10px;border:1px solid var(--line)}
+.football-app.comic-ui .calendar-toolbar h2{color:var(--text)}
+.football-app.comic-ui .calendar-note{color:var(--shell-muted)}
+.football-app.comic-ui .calendar-note>button{color:var(--shell-text)}
+:is(.notice.error,.error-panel){background:var(--danger-surface);color:var(--danger-text);border-color:var(--danger-text)}
+:is(.notice.error,.error-panel) :is(p,button,a){color:inherit}
+/* These surfaces are intentionally dark or metallic regardless of the page theme. */
+.dorm-modal,.practice-lab{--text:#f4f7fc;--muted:#c5d9ed;--surface:#0e2238;--surface-high:#193953;--accent:#ffe44c;--accent-ink:#142438;--selection:#ffe44c;--selection-ink:#142438;--line:#65819b;color:var(--text)}
+.pro-card{--text:#25291f;--muted:#414536;--accent:#214a3d;color:var(--text)}
+.pro-card :is(.pro-card-top,.pro-card-values,.pro-card-edition,.pro-card-name,.pro-card-name>span,footer){color:var(--text)}
+.pro-card[data-frame="obsidian"]{--text:#f5f7ff;--muted:#d0daee;--accent:#e6f79b;color:var(--text)}
+.pro-card[data-frame="obsidian"] :is(h3,.pro-card-name h3){color:var(--text)!important}
+.player-camera-controls button{color:var(--text);background:var(--surface-high);border-color:var(--line)}
+.hub-player-tile .player-camera-controls{--text:#f4f7fc;--surface-high:#11263d;--line:#65819b;--accent:#ffe44c}
+.dorm-modal :is(.modal-heading h2,.modal-heading label){color:var(--text)}
+.football-app.comic-ui .header-controls{color:var(--text)}.football-app.comic-ui .header-controls :is(.theme-picker summary,.header-icon){color:var(--text)}.football-app.comic-ui .language-switch button:not(.selected){color:var(--text)}.football-app.comic-ui .fc-provenance{color:var(--shell-muted)}
+
+.all-day-toggle{display:flex!important;align-items:center;gap:10px;min-height:44px;margin:8px 0 16px;font-weight:600}
+.all-day-toggle input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:var(--accent)}
+.all-day-grid>div{position:relative;padding-right:28px;min-height:44px}
+.all-day-grid .all-day-add{position:absolute;right:2px;top:0;min-width:26px;min-height:44px;padding:4px;color:var(--accent);background:transparent;border:0}
+.all-day-grid>div>button:not(.all-day-add){min-height:28px;text-align:left;color:var(--text);background:var(--surface);border-left:3px solid var(--accent);border-radius:3px;margin:2px 0}

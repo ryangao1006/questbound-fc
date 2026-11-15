@@ -1,0 +1,26 @@
+import type {AvatarConfig} from './avatar.ts';
+import type {FootballPosition,FootballWorldRoster} from './football-data.ts';
+import type {Allocation,PlayerAttributes,SpecialtyId} from './football-stats.ts';
+export const CAREER_DATA_VERSION=1;
+export const FOOTBALL_RULES_VERSION='football-rules-1';
+export type SquadRole='fringe'|'substitute'|'rotation'|'starter'|'key-player'|'captain';
+export type LevelGrant={id:string;level:number;points:4;active:boolean;vested:boolean;at:string;operationId:string};
+export type StatAllocation={id:string;operationId:string;at:string;cost:number;allocation:Allocation;attributes:PlayerAttributes;sourceLevels:number[]};
+export type WorkCredit={id:string;taskSeconds:number;focusSeconds:number;consumedSeconds:number;at:string;sourceIds:string[]};
+export type Fixture={id:string;competition:'premier-league'|'champions-league'|'background';season:number;round:number;day:string;home:string;away:string;stage:string;tieId?:string;leg?:number;homeGoals?:number;awayGoals?:number;played:boolean;playerMinutes?:number;playerRating?:number;playerGoals?:number;playerAssists?:number;playerSaves?:number;aggregate?:[number,number];extraTime?:boolean;shootout?:[number,number]};
+export type Contract={id:string;playerId:string;clubId:string;weeklyWage:number;from:string;until:string;role:SquadRole;goalBonus:number;appearanceBonus:number;loan?:{parentClubId:string;until:string;wageShare:number;optionFee?:number};terminatedAt?:string};
+export type Transfer={id:string;playerId:string;from:string;to:string;kind:'permanent'|'loan'|'renewal'|'free-agent';fee:number;weeklyWage:number;years:number;role:SquadRole;status:'scouting'|'bid'|'counter'|'fee-agreed'|'terms'|'accepted'|'rejected'|'completed'|'expired';createdOn:string;expiresOn:string;counterCount:number;message:string;optionFee?:number;wageShare?:number;effectiveOn?:string};
+export type CareerHistory={id:string;day:string;kind:'debut'|'goal'|'assist'|'role'|'transfer'|'season'|'award'|'milestone'|'contract'|'coach';title:string;detail:string;fixtureId?:string};
+export type Registration={clubId:string;season:number;competition:'premier-league'|'champions-league';playerIds:string[];submittedOn:string;warnings:string[]};
+export type MatchMode='full'|'highlights'|'watch';
+export type ActiveFixture={id:string;fixtureId:string;createdAt:string;practice:boolean;seed:number;lease:string;leaseUntil:string;deviceId:string;checkpointId?:string;checkpointOperationId?:string;sequence:number;frame:number;mode:MatchMode;speed:1|2|4|8|16;attributes:PlayerAttributes;specialties:SpecialtyId[];position:FootballPosition;avatar:AvatarConfig;equipped:string[];weakFoot:number;skillMoves:number;foot:'left'|'right';selection:'starting'|'bench'|'not-selected';subMinute:number;rulesVersion:string;rosterVersion:string;balanceVersion:string;inputHash:string;};
+export type CareerState={
+ version:1;id:string;createdAt:string;rosterVersion:string;rulesVersion:string;balanceVersion:string;world:FootballWorldRoster;
+ careerTotals:{appearances:number;starts:number;goals:number;assists:number;saves:number;minutes:number};player:{id:string;name:string;clubId:string;position:FootballPosition;foot:'left'|'right';number:number;age:number;base:PlayerAttributes;allocation:Allocation;attributes:PlayerAttributes;trust:number;form:number;fitness:number;role:SquadRole;weakFoot:number;skillMoves:number;mastery:Record<string,number>;injuredUntil?:string;captainSince?:string};
+ baselineFocus?:{id:string;seconds:number;scope?:string};baselineLevel:number;highestLevel:number;excludedRewardIds:string[];grants:LevelGrant[];allocations:StatAllocation[];workCredits:WorkCredit[];specialtyChoices:SpecialtyId[];equippedSpecialties:SpecialtyId[];specialtyClaims:number[];
+ retiredPlayerIds:string[];injuries:Record<string,string>;archives:CareerObject[];season:number;day:string;seasonStartedOn:string;fixtures:Fixture[];contracts:Contract[];transfers:Transfer[];registrations:Registration[];history:CareerHistory[];active:ActiveFixture|null;completedFixtureIds:string[];detailedReplayIds:string[];trainingClaims:string[];transferListed:boolean;loanRequested:boolean;seed:number;lastOperation:string;lastProgressNotice?:string;relegated:boolean;seasonSummaries:{season:number;clubId:string;position:number;appearances:number;goals:number;assists:number;awards:string[]}[];
+};
+export type CareerEnvelope={state:CareerState|null;revision:number;updatedAt:string};
+export type CareerCommand={type:string;[key:string]:unknown};
+export type CareerObject={id:string;key:string;hash:string;kind:'checkpoint'|'replay'|'season'|'world';fixtureId:string;sequence:number;createdAt:string;content?:unknown};
+export type CareerRecovery={version:1;state:CareerState|null;revision:number;objects:CareerObject[];operations:{id:string;revision:number;createdAt:string}[];receipts:{id:string;kind:string;data:string;createdAt:string}[]};

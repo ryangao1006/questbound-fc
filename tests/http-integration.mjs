@@ -1,0 +1,36 @@
+// This suite is deliberately restricted to an isolated, loopback preview database.
+import assert from 'node:assert/strict';
+const base=process.env.QI_TEST_URL||'http://127.0.0.1:5176';
+if(!['127.0.0.1','localhost'].includes(new URL(base).hostname))throw Error('Use a local preview for integration tests.');
+const owner='integration-qa-'+crypto.randomUUID();
+const headers={'oai-authenticated-user-id':owner,Origin:base};
+async function call(path,data,extra={}){const r=await fetch(base+'/api/'+path,{method:data===undefined?'GET':'POST',headers:{...headers,...(data===undefined?{}:{'Content-Type':'application/json'}),...extra},body:data===undefined?undefined:JSON.stringify(data)});const body=await r.json();return {status:r.status,...body};}
+assert.equal((await fetch(base+'/api/state')).status,401);
+let state=await call('state');assert.equal(state.revision,0);
+assert.equal((await call('command',{revision:0,operationId:crypto.randomUUID(),command:{type:'task.add',task:{title:'Blocked origin'}}},{Origin:'https://example.org'})).status,403);
+const id=crypto.randomUUID(),operationId=crypto.randomUUID();
+const add={revision:0,operationId,command:{type:'task.add',task:{id,title:'Durability check',area:'Physics',listId:'school'}}};
+const attempts=await Promise.all([call('command',add),call('command',add)]);
+assert(attempts.every(a=>a.status===200));state=await call('state');assert.equal(state.state.tasks.length,1);assert.equal(state.revision,1);
+assert.equal((await call('command',{revision:0,operationId:crypto.randomUUID(),command:{type:'task.toggle',id,done:true}})).status,409);
+state=await call('command',{revision:1,operationId:crypto.randomUUID(),command:{type:'task.toggle',id,done:true}});
+assert.equal(state.state.rewards.filter(r=>r.active).reduce((n,r)=>n+r.points,0),10);
+const savedAvatar={...state.state.settings.avatar,skinTone:8,face:4,hair:4,height:193,build:.8,muscularity:.9,homeKit:{pattern:'hoops',primary:'#174d48',secondary:'#ffffff',trim:'#c6fb52'}};
+const oldRevision=state.revision;
+state=await call('command',{revision:state.revision,operationId:crypto.randomUUID(),command:{type:'settings.update',patch:{theme:'classic-career',language:'zh',reduceMotion:true,avatar:savedAvatar}}});
+assert.equal(state.status,200);assert.equal(state.state.schemaVersion,8);assert.deepEqual(state.state.settings.avatar,savedAvatar);assert.equal(state.state.settings.language,'zh');
+const stale=await call('command',{revision:oldRevision,operationId:crypto.randomUUID(),command:{type:'settings.update',patch:{theme:'training-day'}}});assert.equal(stale.status,409);assert.equal(stale.code,'STATE_CONFLICT');assert.equal(typeof stale.error,'string');
+const unrelatedVersion=state.revision-1;state=await call('command',{revision:unrelatedVersion,operationId:crypto.randomUUID(),command:{type:'task.edit',id,patch:{estimate:40},base:{estimate:25}},precondition:{type:'task.edit',id,fields:{estimate:25}}});assert.equal(state.status,200);assert.equal(state.state.tasks[0].estimate,40);
+const overlapping=await call('command',{revision:unrelatedVersion,operationId:crypto.randomUUID(),command:{type:'task.edit',id,patch:{estimate:60},base:{estimate:25}},precondition:{type:'task.edit',id,fields:{estimate:25}}});assert.equal(overlapping.status,409);
+const secondDevice=await call('state');assert.equal(secondDevice.state.settings.theme,'classic-career');assert.deepEqual(secondDevice.state.settings.avatar,savedAvatar);assert.equal(secondDevice.revision,state.revision);
+const keys=await Promise.all([call('backups/setup',{}),call('backups/setup',{})]);assert.equal(keys[0].key,keys[1].key);
+const backup=await call('backups/create',{});assert.equal(backup.status,200);assert(backup.checksum);
+const bytes=await (await fetch(base+'/api/backups/download/'+backup.id,{headers})).arrayBuffer();
+state=await call('command',{revision:state.revision,operationId:crypto.randomUUID(),command:{type:'task.edit',id,patch:{title:'Newer edit'}}});
+const form=new FormData();form.set('archive',new Blob([bytes]),'backup.qibak');form.set('key',keys[0].key);
+const previewResponse=await fetch(base+'/api/restore/preview',{method:'POST',headers,body:form});const preview=await previewResponse.json();assert.equal(previewResponse.status,200);assert.equal(preview.counts.tasks,1);
+const restoreOp=crypto.randomUUID();state=await call('restore/commit',{id:preview.id,revision:state.revision,operationId:restoreOp});assert.equal(state.status,200);assert.equal(state.state.tasks[0].title,'Durability check');assert.equal(state.state.settings.integrationsPaused,true);assert.deepEqual(state.state.settings.avatar,savedAvatar);assert.equal(state.state.settings.theme,'classic-career');assert.equal(state.state.settings.language,'zh');assert.equal(state.state.settings.reduceMotion,true);assert.equal(state.state.rewards.filter(r=>r.active).reduce((n,r)=>n+r.points,0),10);
+assert.equal((await call('restore/commit',{id:preview.id,revision:0,operationId:restoreOp})).revision,state.revision);
+state=await call('connections/resume',{});assert.equal(state.state.settings.integrationsPaused,false);
+assert((await call('backups')).backups.some(b=>b.kind==='pre-restore'&&b.verified));
+console.log('PASS: private access, CSRF, concurrent retry, conflict codes, XP, shared appearance/theme/language, recovery-key race, encrypted R2 backup, restore, pre-restore protection and safe resume.');

@@ -1,0 +1,1143 @@
+{
+  "assetVersion": "human-v2",
+  "appearanceVersion": 2,
+  "compatibleMorphsFrom": "human-v1",
+  "format": "glTF 2.0 self-contained GLB, no decoder extension",
+  "units": "metres",
+  "up": "+Y",
+  "front": "+Z",
+  "baseHeightMetres": 1.8,
+  "rig": {
+    "node": "PlayerRig",
+    "joints": 53,
+    "skinned": true
+  },
+  "files": {
+    "player.glb": {
+      "bytes": 13420940,
+      "sha256": "0890138840add6f0c767875cd828709590a8872212c84da24fce735ee7651e3f",
+      "totalStoredVertices": 88856,
+      "outfieldByHair": [
+        {
+          "hair": "Hair_0",
+          "visibleVertices": 68209,
+          "triangles": 101982,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_1",
+          "visibleVertices": 66953,
+          "triangles": 101648,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_2",
+          "visibleVertices": 66193,
+          "triangles": 100226,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_3",
+          "visibleVertices": 66142,
+          "triangles": 99354,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_4",
+          "visibleVertices": 71177,
+          "triangles": 107128,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_5",
+          "visibleVertices": 69061,
+          "triangles": 103656,
+          "drawCalls": 16
+        }
+      ],
+      "keeperAdditionalVertices": 4260,
+      "keeperAdditionalDrawCalls": 2,
+      "nodes": [
+        {
+          "name": "Armband",
+          "vertices": 40,
+          "triangles": 44,
+          "drawCalls": 1
+        },
+        {
+          "name": "Arms_Skin",
+          "vertices": 824,
+          "triangles": 1456,
+          "drawCalls": 1
+        },
+        {
+          "name": "Body",
+          "vertices": 45221,
+          "triangles": 68800,
+          "drawCalls": 1
+        },
+        {
+          "name": "Boots",
+          "vertices": 880,
+          "triangles": 1192,
+          "drawCalls": 3
+        },
+        {
+          "name": "Eyebrows",
+          "vertices": 124,
+          "triangles": 192,
+          "drawCalls": 1
+        },
+        {
+          "name": "Eyelashes",
+          "vertices": 250,
+          "triangles": 368,
+          "drawCalls": 1
+        },
+        {
+          "name": "Eyes",
+          "vertices": 1076,
+          "triangles": 2040,
+          "drawCalls": 1
+        },
+        {
+          "name": "Feet",
+          "vertices": 2616,
+          "triangles": 4528,
+          "drawCalls": 1
+        },
+        {
+          "name": "Gloves",
+          "vertices": 4124,
+          "triangles": 6712,
+          "drawCalls": 1
+        },
+        {
+          "name": "Gloves_Wrist",
+          "vertices": 136,
+          "triangles": 160,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_0",
+          "vertices": 3050,
+          "triangles": 3678,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_1",
+          "vertices": 1794,
+          "triangles": 3344,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_2",
+          "vertices": 1034,
+          "triangles": 1922,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_3",
+          "vertices": 983,
+          "triangles": 1050,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_4",
+          "vertices": 6018,
+          "triangles": 8824,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_5",
+          "vertices": 3902,
+          "triangles": 5352,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey",
+          "vertices": 5726,
+          "triangles": 8160,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Collar",
+          "vertices": 504,
+          "triangles": 840,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Cuffs",
+          "vertices": 265,
+          "triangles": 312,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Hem",
+          "vertices": 388,
+          "triangles": 496,
+          "drawCalls": 1
+        },
+        {
+          "name": "Shorts",
+          "vertices": 2870,
+          "triangles": 3904,
+          "drawCalls": 1
+        },
+        {
+          "name": "Socks",
+          "vertices": 2537,
+          "triangles": 3424,
+          "drawCalls": 1
+        },
+        {
+          "name": "Teeth",
+          "vertices": 4494,
+          "triangles": 7120,
+          "drawCalls": 1
+        }
+      ]
+    },
+    "player-mobile.glb": {
+      "bytes": 6129688,
+      "sha256": "8926c021d121743569963dea334bff1f92de76942d64195c0a1bb47821c386f3",
+      "totalStoredVertices": 43583,
+      "outfieldByHair": [
+        {
+          "hair": "Hair_0",
+          "visibleVertices": 22936,
+          "triangles": 37926,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_1",
+          "visibleVertices": 21680,
+          "triangles": 37592,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_2",
+          "visibleVertices": 20920,
+          "triangles": 36170,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_3",
+          "visibleVertices": 20869,
+          "triangles": 35298,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_4",
+          "visibleVertices": 25904,
+          "triangles": 43072,
+          "drawCalls": 16
+        },
+        {
+          "hair": "Hair_5",
+          "visibleVertices": 23788,
+          "triangles": 39600,
+          "drawCalls": 16
+        }
+      ],
+      "keeperAdditionalVertices": 4260,
+      "keeperAdditionalDrawCalls": 2,
+      "nodes": [
+        {
+          "name": "Armband",
+          "vertices": 40,
+          "triangles": 44,
+          "drawCalls": 1
+        },
+        {
+          "name": "Arms_Skin",
+          "vertices": 824,
+          "triangles": 1456,
+          "drawCalls": 1
+        },
+        {
+          "name": "Body",
+          "vertices": 9460,
+          "triangles": 17216,
+          "drawCalls": 1
+        },
+        {
+          "name": "Boots",
+          "vertices": 880,
+          "triangles": 1192,
+          "drawCalls": 3
+        },
+        {
+          "name": "Eyebrows",
+          "vertices": 124,
+          "triangles": 192,
+          "drawCalls": 1
+        },
+        {
+          "name": "Eyelashes",
+          "vertices": 250,
+          "triangles": 368,
+          "drawCalls": 1
+        },
+        {
+          "name": "Eyes",
+          "vertices": 1076,
+          "triangles": 2040,
+          "drawCalls": 1
+        },
+        {
+          "name": "Feet",
+          "vertices": 2616,
+          "triangles": 4528,
+          "drawCalls": 1
+        },
+        {
+          "name": "Gloves",
+          "vertices": 4124,
+          "triangles": 6712,
+          "drawCalls": 1
+        },
+        {
+          "name": "Gloves_Wrist",
+          "vertices": 136,
+          "triangles": 160,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_0",
+          "vertices": 3050,
+          "triangles": 3678,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_1",
+          "vertices": 1794,
+          "triangles": 3344,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_2",
+          "vertices": 1034,
+          "triangles": 1922,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_3",
+          "vertices": 983,
+          "triangles": 1050,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_4",
+          "vertices": 6018,
+          "triangles": 8824,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_5",
+          "vertices": 3902,
+          "triangles": 5352,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey",
+          "vertices": 1236,
+          "triangles": 2208,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Collar",
+          "vertices": 252,
+          "triangles": 420,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Cuffs",
+          "vertices": 78,
+          "triangles": 80,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey_Trim_Hem",
+          "vertices": 105,
+          "triangles": 124,
+          "drawCalls": 1
+        },
+        {
+          "name": "Shorts",
+          "vertices": 577,
+          "triangles": 976,
+          "drawCalls": 1
+        },
+        {
+          "name": "Socks",
+          "vertices": 530,
+          "triangles": 856,
+          "drawCalls": 1
+        },
+        {
+          "name": "Teeth",
+          "vertices": 4494,
+          "triangles": 7120,
+          "drawCalls": 1
+        }
+      ]
+    },
+    "player-match.glb": {
+      "bytes": 3251340,
+      "sha256": "99221e6b27038ebc553f117faaa375afedddb02bfe24b5d757fa8dd829bd0fcf",
+      "totalStoredVertices": 14720,
+      "outfieldByHair": [
+        {
+          "hair": "Hair_0",
+          "visibleVertices": 8327,
+          "triangles": 12583,
+          "drawCalls": 7
+        },
+        {
+          "hair": "Hair_1",
+          "visibleVertices": 7788,
+          "triangles": 12833,
+          "drawCalls": 7
+        },
+        {
+          "hair": "Hair_2",
+          "visibleVertices": 7548,
+          "triangles": 12431,
+          "drawCalls": 7
+        },
+        {
+          "hair": "Hair_3",
+          "visibleVertices": 7670,
+          "triangles": 12135,
+          "drawCalls": 7
+        },
+        {
+          "hair": "Hair_4",
+          "visibleVertices": 8913,
+          "triangles": 13506,
+          "drawCalls": 7
+        },
+        {
+          "hair": "Hair_5",
+          "visibleVertices": 8438,
+          "triangles": 13002,
+          "drawCalls": 7
+        }
+      ],
+      "keeperAdditionalVertices": 1546,
+      "keeperAdditionalDrawCalls": 1,
+      "nodes": [
+        {
+          "name": "Armband",
+          "vertices": 40,
+          "triangles": 44,
+          "drawCalls": 1
+        },
+        {
+          "name": "Body",
+          "vertices": 3965,
+          "triangles": 6759,
+          "drawCalls": 1
+        },
+        {
+          "name": "Boots",
+          "vertices": 880,
+          "triangles": 1192,
+          "drawCalls": 1
+        },
+        {
+          "name": "Eyes",
+          "vertices": 404,
+          "triangles": 714,
+          "drawCalls": 1
+        },
+        {
+          "name": "Gloves",
+          "vertices": 1546,
+          "triangles": 2242,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_0",
+          "vertices": 1217,
+          "triangles": 919,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_1",
+          "vertices": 678,
+          "triangles": 1169,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_2",
+          "vertices": 438,
+          "triangles": 767,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_3",
+          "vertices": 560,
+          "triangles": 471,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_4",
+          "vertices": 1803,
+          "triangles": 1842,
+          "drawCalls": 1
+        },
+        {
+          "name": "Hair_5",
+          "vertices": 1328,
+          "triangles": 1338,
+          "drawCalls": 1
+        },
+        {
+          "name": "Jersey",
+          "vertices": 790,
+          "triangles": 1373,
+          "drawCalls": 1
+        },
+        {
+          "name": "Shorts",
+          "vertices": 348,
+          "triangles": 566,
+          "drawCalls": 1
+        },
+        {
+          "name": "Socks",
+          "vertices": 723,
+          "triangles": 1060,
+          "drawCalls": 1
+        }
+      ]
+    }
+  },
+  "animations": [
+    {
+      "name": "idle",
+      "seconds": 4.0,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "warmup",
+      "seconds": 3.0,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "nod",
+      "seconds": 1.8,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "walk",
+      "seconds": 1.0666666666666667,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0.5819,
+      "stanceFraction": 0.58,
+      "stanceTravelMetres": 0.36
+    },
+    {
+      "name": "run",
+      "seconds": 0.7333333333333333,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 3.0909,
+      "stanceFraction": 0.3,
+      "stanceTravelMetres": 0.68
+    },
+    {
+      "name": "sprint",
+      "seconds": 0.6,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 5.641,
+      "stanceFraction": 0.26,
+      "stanceTravelMetres": 0.88
+    },
+    {
+      "name": "dribble",
+      "seconds": 0.7666666666666667,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 1.8414,
+      "stanceFraction": 0.34,
+      "stanceTravelMetres": 0.48,
+      "contact": {
+        "seconds": 0.2,
+        "foot": "right",
+        "event": "controlledTouch",
+        "frame": 6,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1196,
+          0.1344,
+          0.3123
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "accelerate",
+      "seconds": 0.7333333333333333,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "stop",
+      "seconds": 0.8,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "turn_left",
+      "seconds": 0.6,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "turn_right",
+      "seconds": 0.6,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "receive",
+      "seconds": 0.8,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.38,
+        "foot": "right",
+        "event": "cushion",
+        "seconds": 0.3,
+        "frame": 9,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1504,
+          0.1245,
+          0.4897
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "pass",
+      "seconds": 1.0,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.5,
+        "foot": "right",
+        "event": "kick",
+        "seconds": 0.5,
+        "frame": 15,
+        "bone": "foot_r",
+        "surface": "instep",
+        "localPosition": [
+          -0.1143,
+          0.0786,
+          0.3528
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "shoot",
+      "seconds": 1.1333333333333333,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "right",
+        "event": "kick",
+        "seconds": 0.6,
+        "frame": 18,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1296,
+          0.0377,
+          0.5155
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "cross",
+      "seconds": 1.2,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "right",
+        "event": "kick",
+        "seconds": 0.6333333333333333,
+        "frame": 19,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.4193,
+          0.0486,
+          0.5025
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "penalty",
+      "seconds": 1.2666666666666666,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "right",
+        "event": "kick",
+        "seconds": 0.6666666666666666,
+        "frame": 20,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1296,
+          0.0378,
+          0.5151
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "tackle",
+      "seconds": 0.9,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.45,
+        "foot": "right",
+        "event": "tackleContact",
+        "seconds": 0.4,
+        "frame": 12,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1494,
+          0.0936,
+          0.7115
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "slide",
+      "seconds": 1.4,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.43,
+        "foot": "right",
+        "event": "tackleContact",
+        "seconds": 0.6,
+        "frame": 18,
+        "bone": "foot_r",
+        "surface": "forefoot",
+        "localPosition": [
+          -0.1594,
+          0.0706,
+          0.7717
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "header",
+      "seconds": 0.9333333333333333,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.56,
+        "bone": "head",
+        "event": "headerContact",
+        "seconds": 0.5333333333333333,
+        "frame": 16,
+        "surface": "forehead",
+        "localPosition": [
+          0.0,
+          1.9151,
+          0.1813
+        ],
+        "ballCentreOffset": [
+          0,
+          0.035,
+          0.1
+        ]
+      }
+    },
+    {
+      "name": "gk_idle",
+      "seconds": 1.8,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "gk_catch",
+      "seconds": 1.0666666666666667,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "bone": "hand_r",
+        "event": "catch",
+        "seconds": 0.5666666666666667,
+        "frame": 17,
+        "surface": "palm",
+        "localPosition": [
+          -0.1044,
+          1.752,
+          0.4428
+        ],
+        "ballCentreOffset": [
+          0,
+          0,
+          0.095
+        ]
+      }
+    },
+    {
+      "name": "gk_dive_left",
+      "seconds": 1.3,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.56,
+        "bone": "hand_l",
+        "event": "saveContact",
+        "seconds": 0.7333333333333333,
+        "frame": 22,
+        "surface": "palm",
+        "localPosition": [
+          0.8376,
+          1.2159,
+          0.307
+        ],
+        "ballCentreOffset": [
+          0,
+          0,
+          0.095
+        ]
+      }
+    },
+    {
+      "name": "gk_dive_right",
+      "seconds": 1.3,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.56,
+        "bone": "hand_r",
+        "event": "saveContact",
+        "seconds": 0.7333333333333333,
+        "frame": 22,
+        "surface": "palm",
+        "localPosition": [
+          -0.8376,
+          1.2159,
+          0.307
+        ],
+        "ballCentreOffset": [
+          0,
+          0,
+          0.095
+        ]
+      }
+    },
+    {
+      "name": "bench",
+      "seconds": 4.0,
+      "loop": true,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "celebrate",
+      "seconds": 2.6,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0
+    },
+    {
+      "name": "receive_left",
+      "seconds": 0.8,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.38,
+        "foot": "left",
+        "event": "cushion",
+        "seconds": 0.3,
+        "frame": 9,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.1504,
+          0.1245,
+          0.4897
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "pass_left",
+      "seconds": 1.0,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.5,
+        "foot": "left",
+        "event": "kick",
+        "seconds": 0.5,
+        "frame": 15,
+        "bone": "foot_l",
+        "surface": "instep",
+        "localPosition": [
+          0.1143,
+          0.0786,
+          0.3528
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "shoot_left",
+      "seconds": 1.1333333333333333,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "left",
+        "event": "kick",
+        "seconds": 0.6,
+        "frame": 18,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.1296,
+          0.0377,
+          0.5155
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "cross_left",
+      "seconds": 1.2,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "left",
+        "event": "kick",
+        "seconds": 0.6333333333333333,
+        "frame": 19,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.4193,
+          0.0486,
+          0.5025
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "penalty_left",
+      "seconds": 1.2666666666666666,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.53,
+        "foot": "left",
+        "event": "kick",
+        "seconds": 0.6666666666666666,
+        "frame": 20,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.1296,
+          0.0378,
+          0.5151
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "tackle_left",
+      "seconds": 0.9,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.45,
+        "foot": "left",
+        "event": "tackleContact",
+        "seconds": 0.4,
+        "frame": 12,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.1494,
+          0.0936,
+          0.7115
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    },
+    {
+      "name": "slide_left",
+      "seconds": 1.4,
+      "loop": false,
+      "rootMotion": false,
+      "nominalMetresPerSecond": 0,
+      "contact": {
+        "fraction": 0.43,
+        "foot": "left",
+        "event": "tackleContact",
+        "seconds": 0.6,
+        "frame": 18,
+        "bone": "foot_l",
+        "surface": "forefoot",
+        "localPosition": [
+          0.1594,
+          0.0706,
+          0.7717
+        ],
+        "ballCentreOffset": [
+          0,
+          0.025,
+          0.105
+        ]
+      }
+    }
+  ],
+  "morphs": [
+    "Muscle",
+    "Build",
+    "Face_1",
+    "Face_2",
+    "Face_3",
+    "Face_4",
+    "Face_5"
+  ],
+  "meshRules": {
+    "Body": "Continuous refined anatomical head/neck/forearms/knees surface with all saved facial/body morphs. Lighter topology in phone and match models.",
+    "Boots": "Merged boot shells, laces and studs; the original foot_l and foot_r groups drive both boots.",
+    "Hair_0..Hair_5": "Show exactly the saved selected style.",
+    "Feet": "Hide while boots are visible; absent from match LOD.",
+    "Gloves/Gloves_Wrist": "Show for goalkeepers.",
+    "Armband": "Cosmetic visibility only; does not grant captaincy."
+  },
+  "runtime": {
+    "skin": "Retain photographic albedo/normal/roughness maps. Skin tint multiplies the albedo; keep roughness factor1 when a roughnessMap exists instead of multiplying it again by .58.",
+    "cloth": "Keep woven normal map when replacing kit albedo.",
+    "animation": "Crossfade 120\u2013200ms. Locomotion timeScale = world speed / (nominal speed * heightCm/180). Use explicit left-foot variants; kit text is never mirrored. Match simulation owns the ball; contact markers align presentation.",
+    "footPlanting": "Analytical two-bone stance samples authored at30Hz, no IK runtime required. Blend stride speed to movement; a runtime terrain IK pass is still needed for uneven terrain.",
+    "leftFoot": "Use receive_left/pass_left/shoot_left/cross_left/penalty_left/tackle_left/slide_left. These mirror paired bone poses; kit text and mesh geometry are not reflected.",
+    "hidden": "Pause mixer/rendering when offscreen.",
+    "benchSeatHeightMetres": 0.49
+  },
+  "license": "CC0-1.0",
+  "licenseFile": "LICENSES.json",
+  "notes": [
+    "Original fictional young footballer; no real-person likeness or licensed club marks.",
+    "Saved human-v1 appearances stay on their version until a previewed upgrade is accepted.",
+    "Match LOD omits teeth/eyelashes/brow overlay, merges skin and trim meshes, uses one boot material and fixed decimation with barycentric morph transfer. All six hair styles and facial/body controls remain."
+  ],
+  "animationVersion": "football-clips-v2.0.0",
+  "immutableAfterPublication": true
+}

@@ -1,0 +1,10 @@
+{
+  "name": "quest-island-reminders",
+  "account_id": "<your-cloudflare-account-id>",
+  "main": "worker.ts",
+  "workers_dev": false,
+  "compatibility_date": "2026-05-15",
+  "triggers": {"crons": ["* * * * *"]},
+  "observability": {"enabled": true},
+  "vars": {"SITE_URL": "https://quest-island-ryan.gaoryan680.chatgpt.site"}
+}

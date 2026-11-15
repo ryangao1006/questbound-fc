@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {DEFAULT_BINDINGS,PRACTICE_ACTIONS,readBindings,rebind} from '../lib/practice-bindings.ts';
+test('invalid and reserved practice keys fall back without losing any action',()=>{for(const v of [null,{},[],{...DEFAULT_BINDINGS,pass:'w'},{...DEFAULT_BINDINGS,pass:'k'}])assert.deepEqual(readBindings(v),DEFAULT_BINDINGS);assert.deepEqual(rebind(DEFAULT_BINDINGS,'pass','Escape'),DEFAULT_BINDINGS)});
+test('rebinding swaps conflicts, survives serialization and does not mutate saved defaults',()=>{const b=rebind(DEFAULT_BINDINGS,'pass','k');assert.equal(b.pass,'k');assert.equal(b.shoot,'j');assert.equal(new Set(PRACTICE_ACTIONS.map(a=>b[a])).size,7);assert.deepEqual(readBindings(JSON.parse(JSON.stringify(b))),b);assert.equal(DEFAULT_BINDINGS.pass,'j');assert.equal(rebind(b,'tackle','f').tackle,'f')});

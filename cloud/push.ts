@@ -1,0 +1,6 @@
+import {buildPushPayload,type PushSubscription} from '@block65/webcrypto-web-push';
+import {base64url} from '../lib/crypto.ts';
+export type Vapid={publicKey:string;privateKey:string;subject:string};
+export function validateSubscription(s:PushSubscription){const u=new URL(s.endpoint);if(u.protocol!=='https:'||u.port||u.username||u.password||!(u.hostname.endsWith('.push.apple.com')||u.hostname==='fcm.googleapis.com'||u.hostname.endsWith('.notify.windows.com')||u.hostname.endsWith('.push.services.mozilla.com'))||!s.keys?.auth||!s.keys.p256dh)throw new Error('Unsupported notification subscription.');}
+export async function makeVapid():Promise<Vapid>{const pair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);const pub=new Uint8Array(await crypto.subtle.exportKey('raw',pair.publicKey)),priv=await crypto.subtle.exportKey('jwk',pair.privateKey);return {publicKey:base64url(pub),privateKey:priv.d!,subject:'mailto:quest-island@localhost.invalid'};}
+export async function deliver(s:PushSubscription,keys:Vapid,message:{title:string;body:string;url:string;tag:string}){validateSubscription(s);return fetch(s.endpoint,await buildPushPayload({data:message,options:{ttl:900,urgency:'normal'}},s,keys));}

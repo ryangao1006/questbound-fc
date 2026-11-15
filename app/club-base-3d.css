@@ -1,0 +1,353 @@
+/* Comic 3D base overview (/club/base). */
+
+.base-3d-panel {
+  max-width: 1080px;
+  margin: 0 auto 16px;
+}
+
+.base-3d-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid var(--line, #243449);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 20%, #1b334b 0%, #0b1727 72%);
+}
+
+.base-3d-canvas-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.base-3d-canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.base-3d-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.base-room-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  gap: 1px;
+  max-width: min(230px, 40vw);
+  padding: 5px 9px;
+  border: 1px solid rgba(167, 194, 222, 0.55);
+  border-radius: 10px;
+  background: rgba(7, 17, 30, 0.86);
+  color: #f5f8ff;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-decoration: none;
+  white-space: nowrap;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.base-room-label:hover,
+.base-room-label.is-hovered,
+.base-room-label:focus-visible {
+  border-color: var(--accent, #c8f56e);
+  background: #13263c;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #c8f56e) 42%, transparent), 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.base-room-label:focus-visible {
+  outline: 3px solid var(--accent, #c8f56e);
+  outline-offset: 2px;
+}
+
+.base-room-label-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.base-room-label-status {
+  color: #b9c9da;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.base-3d-legend {
+  margin: 8px 2px 0;
+  color: var(--muted, #9fb0c6);
+  font-size: 11px;
+  text-align: center;
+}
+
+.base-3d-loading,
+.base-3d-fallback {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed var(--line, #243449);
+  border-radius: 14px;
+  background: var(--surface, #101a29);
+  color: var(--muted, #9fb0c6);
+  font-size: 13px;
+  text-align: center;
+}
+
+.base-3d-failed {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 20px;
+  color: var(--muted, #9fb0c6);
+  font-size: 13px;
+  text-align: center;
+}
+
+.base-room-list-title {
+  max-width: 1080px;
+  margin: 18px auto 10px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+@media (max-width: 760px) {
+  .base-3d-stage {
+    aspect-ratio: 4 / 5;
+    min-height: 420px;
+  }
+
+  .base-room-label {
+    max-width: min(150px, 42vw);
+    padding: 3px 6px;
+    font-size: 9.5px;
+  }
+
+  .base-room-label-status {
+    font-size: 8px;
+  }
+
+  .base-3d-legend {
+    font-size: 10.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-room-label {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Comic art pass on the 3D base (/club/base).
+   ============================================================ */
+
+.base-3d-stage {
+  --comic-ink: #10151f;
+  --comic-paper: #f7f1e3;
+  --comic-accent: #c8f56e;
+  border: 3px solid var(--comic-ink);
+  border-radius: 10px;
+  background: linear-gradient(#bfe6ff, #9ad8ff 55%, #f7f1e3);
+  box-shadow: 8px 8px 0 var(--comic-ink);
+}
+
+.base-3d-stage.is-transitioning {
+  border-color: var(--comic-accent);
+}
+
+.base-room-label {
+  border: 3px solid var(--comic-ink, #10151f);
+  border-radius: 4px;
+  background: var(--comic-paper, #f7f1e3);
+  color: var(--comic-ink, #10151f);
+  font-size: 11.5px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-shadow: none;
+  box-shadow: 4px 4px 0 var(--comic-ink, #10151f);
+  rotate: -1.3deg;
+  scale: 1;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease, scale 0.12s ease;
+}
+
+.base-room-label:nth-child(2n) {
+  rotate: 1.2deg;
+}
+
+.base-room-label:nth-child(3n) {
+  rotate: -0.4deg;
+}
+
+.base-room-label:hover,
+.base-room-label.is-hovered,
+.base-room-label:focus-visible {
+  border-color: var(--comic-ink, #10151f);
+  background: var(--comic-accent, #c8f56e);
+  color: var(--comic-ink, #10151f);
+  box-shadow: 6px 6px 0 var(--comic-ink, #10151f);
+  scale: 1.06;
+}
+
+.base-room-label:focus-visible {
+  outline: 3px solid var(--comic-ink, #10151f);
+  outline-offset: 3px;
+}
+
+.base-room-label-name {
+  letter-spacing: 0.01em;
+}
+
+.base-room-label-status {
+  color: #3a4356;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.base-3d-legend {
+  display: inline-flex;
+  justify-self: center;
+  margin: 10px auto 0;
+  padding: 4px 10px;
+  border: 2px solid var(--comic-ink, #10151f);
+  border-radius: 4px;
+  background: var(--comic-paper, #f7f1e3);
+  color: var(--comic-ink, #10151f);
+  box-shadow: 3px 3px 0 var(--comic-ink, #10151f);
+  font-size: 10.5px;
+  font-weight: 800;
+  text-align: center;
+  rotate: 0.5deg;
+}
+
+.base-3d-transition {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(16, 21, 31, 0.18);
+  animation: base-3d-transition-fade 0.46s ease-in both;
+}
+
+.base-3d-transition-lines {
+  position: absolute;
+  inset: -22%;
+  background: repeating-conic-gradient(from 8deg at 50% 46%, rgba(247, 241, 227, 0.9) 0deg 1.2deg, transparent 1.2deg 7deg);
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, transparent 16%, #000 58%, transparent 86%);
+  mask-image: radial-gradient(circle at 50% 46%, transparent 16%, #000 58%, transparent 86%);
+  animation: base-3d-transition-zoom 0.46s ease-in both;
+}
+
+.base-3d-transition-label {
+  position: relative;
+  padding: 8px 16px;
+  border: 4px solid var(--comic-ink, #10151f);
+  border-radius: 5px;
+  background: var(--comic-accent, #c8f56e);
+  color: var(--comic-ink, #10151f);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-align: center;
+  rotate: -2.4deg;
+  box-shadow: 6px 6px 0 var(--comic-ink, #10151f);
+  animation: base-3d-transition-stamp 0.46s cubic-bezier(0.16, 1.3, 0.4, 1) both;
+}
+
+.base-3d-stage.is-transitioning .base-3d-labels {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes base-3d-transition-fade {
+  from {
+    opacity: 0;
+    background: rgba(16, 21, 31, 0);
+  }
+  to {
+    opacity: 1;
+    background: rgba(16, 21, 31, 0.34);
+  }
+}
+
+@keyframes base-3d-transition-zoom {
+  from {
+    transform: scale(0.6) rotate(0deg);
+    opacity: 0.2;
+  }
+  to {
+    transform: scale(1.5) rotate(8deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes base-3d-transition-stamp {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .base-3d-stage {
+    border-width: 3px;
+    box-shadow: 6px 6px 0 var(--comic-ink);
+  }
+
+  .base-room-label {
+    padding: 3px 6px;
+    font-size: 9.5px;
+    box-shadow: 3px 3px 0 var(--comic-ink);
+    rotate: -1deg;
+  }
+
+  .base-room-label:nth-child(2n) {
+    rotate: 1deg;
+  }
+
+  .base-room-label-status {
+    font-size: 8px;
+  }
+
+  .base-3d-legend {
+    font-size: 9.5px;
+    padding: 3px 8px;
+  }
+
+  .base-3d-transition-label {
+    max-width: calc(100% - 36px);
+    padding: 6px 11px;
+    font-size: 16px;
+    box-shadow: 4px 4px 0 var(--comic-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-3d-transition,
+  .base-3d-transition-lines,
+  .base-3d-transition-label {
+    animation: none;
+  }
+
+  .base-room-label {
+    transition: none;
+  }
+}

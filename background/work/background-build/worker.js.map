@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "sources": ["../../worker.ts"],
+  "sourceRoot": "work/background-build",
+  "sourcesContent": ["// Deploy independently: this scheduler uses no AI and keeps the Mac asleep.\nexport interface Env {SITE_URL:string;SERVICE_SECRET:string;SITE_ACCESS_TOKEN:string;}\nexport default {async scheduled(_controller:ScheduledController,env:Env,ctx:ExecutionContext){ctx.waitUntil((async()=>{const response=await fetch(new URL('/api/service/run',env.SITE_URL),{method:'POST',headers:{Authorization:`Bearer ${env.SERVICE_SECRET}`,'OAI-Sites-Authorization':`Bearer ${env.SITE_ACCESS_TOKEN}`}});if(!response.ok)throw new Error(`Quest Island scheduled check failed: ${response.status}`);const result=await response.json() as {results:{error?:boolean}[]};if(result.results.some(r=>r.error))throw new Error('Quest Island background check reported a failure. Check the site connection health.');})());}};\n"],
+  "mappings": ";AAEA,IAAO,iBAAQ,EAAC,MAAM,UAAU,aAAgC,KAAQ,KAAqB;AAAC,MAAI,WAAW,YAAS;AAAC,UAAM,WAAS,MAAM,MAAM,IAAI,IAAI,oBAAmB,IAAI,QAAQ,GAAE,EAAC,QAAO,QAAO,SAAQ,EAAC,eAAc,UAAU,IAAI,cAAc,IAAG,2BAA0B,UAAU,IAAI,iBAAiB,GAAE,EAAC,CAAC;AAAE,QAAG,CAAC,SAAS,GAAG,OAAM,IAAI,MAAM,wCAAwC,SAAS,MAAM,EAAE;AAAE,UAAM,SAAO,MAAM,SAAS,KAAK;AAAkC,QAAG,OAAO,QAAQ,KAAK,OAAG,EAAE,KAAK,EAAE,OAAM,IAAI,MAAM,qFAAqF;AAAA,EAAE,GAAG,CAAC;AAAE,EAAC;",
+  "names": []
+}

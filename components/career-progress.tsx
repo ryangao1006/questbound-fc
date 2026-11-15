@@ -1,0 +1,9 @@
+"use client";
+import {Trophy,Check,Lock,ArrowRight,Gift} from 'lucide-react';
+import {careerProgress} from '@/lib/career-feedback';
+import type {PlannerState} from '@/lib/model';
+import {useLocale} from './locale';
+export function CareerProgress({state}:{state:PlannerState}){
+ const {t,locale}=useLocale(),career=careerProgress(state);
+ return <section className="card career-journey"><div className="section-heading"><div><span className="eyebrow">{t('YOUR KIT COLLECTION')}</span><h2>{t(career.phase)}</h2></div><span className="career-level-badge"><Trophy size={17}/>{t('LEVEL {0}',career.rank)}</span></div><div className="career-progress-copy"><b>{career.xp.toLocaleString(locale)} XP</b><span>{t('{0} XP to the next level',career.toNextLevel)}</span></div><div className="xp-track" role="progressbar" aria-label={t('Career level progress')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={career.progress}><i style={{width:`${career.progress}%`}}/></div><p>{career.ready.length?<><Gift size={16}/>{t('{0} rewards ready in your kit locker',career.ready.length)}</>:career.next?<><ArrowRight size={16}/>{t('{0} XP to {1}',career.next.remaining,t(career.next.name))}</>:<><Check size={16}/>{t('Your locker is complete. Keep growing at your own pace.')}</>}</p><ol className="career-milestones">{career.milestones.map(item=><li key={item.id} className={item.available?'reached':''}><span>{item.available?<Check size={15}/>:<Lock size={14}/>}</span><div><small>{t('LEVEL {0}',item.level)}</small><strong>{t(item.name)}</strong><em>{t(item.equipped?'Equipped':item.claimed?'Claimed':item.available?'Ready to claim':'{0} XP away',item.remaining)}</em></div></li>)}</ol><p className="muted">{t('Cosmetic rewards do not decide selection or captaincy. Those are earned in your football career.')}</p><small className="muted">{t('10 XP per task or habit. 5 XP after 20 active focus minutes. Rest days never take XP away.')}</small></section>;
+}

@@ -1,0 +1,20 @@
+{
+  "id": "comic-v1",
+  "version": 1,
+  "kind": "render-profile",
+  "geometrySources": [
+    "../player-v1/manifest.json",
+    "../player-v2/manifest.json"
+  ],
+  "geometryUnchanged": true,
+  "description": "Original stepped-light material profile over preserved licensed human geometry; not a new sculpt or human-v3.",
+  "roomGeometry": "Original procedural authored furnishings and architecture in components/dorm-scene.tsx",
+  "stadiumBackground": "Original SVG illustration, stadium.svg",
+  "thirdPartyArtwork": [],
+  "preferenceScope": "device-local; account preference migration deferred",
+  "checksums": {
+    "public/assets/comic-v1/stadium.svg": "13461cab22627fbb6ca0155a6eadd37b9e3a820ee9b18d45c65d293c5d9a0f6a",
+    "lib/comic-material.ts": "3eac57e0500d7200dd22494efcbc4a1c1e81dbbb8984ce811a1e8a214c01a857",
+    "components/dorm-scene.tsx": "8df56be4136a0c58d82548e862616c5a2c5e0abc2c4f0bef2ae6df9d1a0baaa3"
+  }
+}

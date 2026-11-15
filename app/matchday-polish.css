@@ -1,0 +1,374 @@
+/* Original career-menu presentation. No planner or reward state lives here. */
+:root,[data-theme="night-stadium"] {
+  --bg:#100f28;
+  --surface:#1a1835;
+  --surface-high:#25223f;
+  --surface-low:#131228;
+  --text:#f8f7ff;
+  --muted:#b7b5d0;
+  --line:#403b5c;
+  --accent:#7bf3e2;
+  --accent-ink:#10332f;
+  --accent-soft:#7bf3e212;
+  --retro-pink:#f3a0dd;
+  --retro-purple:#8060d8;
+}
+:root {
+  --menu-ease:cubic-bezier(.2,.75,.2,1);
+  --panel-edge:color-mix(in srgb,var(--line) 80%,transparent);
+  --panel-fill:linear-gradient(125deg,color-mix(in srgb,var(--surface-high) 65%,var(--surface)),var(--surface));
+}
+.football-app {padding-inline:clamp(18px,4.5vw,78px)}
+.stadium-scenery {
+  background:radial-gradient(ellipse at 85% 8%,color-mix(in srgb,var(--retro-purple) 28%,transparent),transparent 52%),
+    radial-gradient(ellipse at 8% 95%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 55%),var(--bg);
+}
+.stadium-scenery:before {opacity:calc(var(--retro-art-opacity) * .62);background-position:left top}
+.stadium-scenery:after {opacity:.45}
+.game-shell {max-width:1440px}
+.game-header {min-height:100px;border-bottom:1px solid color-mix(in srgb,var(--line) 45%,transparent);margin-bottom:14px}
+.club-identity strong {font-size:29px;letter-spacing:.8px}
+.club-identity div>span {font-size:9px;letter-spacing:1.2px;opacity:.8}
+.club-crest {box-shadow:3px 3px 0 color-mix(in srgb,var(--accent) 18%,transparent)}
+.header-player {padding:8px 14px;border:1px solid var(--panel-edge);background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.header-player b {font-size:15px}
+.header-player>div>span {font-size:11px}
+.rating-hex {color:var(--accent);border-color:var(--line);background:var(--surface-low)}
+.header-controls {gap:8px}
+.header-icon,.theme-picker summary {border-color:var(--panel-edge);background:var(--surface-low)}
+.career-navigation {max-width:none;border:1px solid var(--panel-edge);box-shadow:0 12px 35px #08051c20}
+.career-navigation>button {min-height:54px;font-size:22px;flex:1;padding-inline:16px;isolation:isolate;overflow:hidden;transition:color .2s var(--menu-ease),background .2s var(--menu-ease)}
+.career-navigation>button:before {content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,color-mix(in srgb,var(--retro-purple) 36%,var(--surface)),color-mix(in srgb,var(--accent) 12%,var(--surface)));opacity:0;transition:opacity .22s var(--menu-ease)}
+.career-navigation>button.active {background:var(--surface-high);box-shadow:none;color:var(--accent)}
+.career-navigation>button.active:before {opacity:1}
+.career-navigation>button:after {height:3px;left:12px;right:12px;bottom:0;transform:scaleX(0);background:var(--accent);transition:transform .28s var(--menu-ease)}
+.career-navigation>button.active:after {transform:scaleX(1)}
+.career-nav-index {font-size:9px;opacity:.6;margin-right:3px}
+.career-navigation .game-save {padding-inline:20px;min-width:105px;border-left:1px solid var(--panel-edge)}
+.matchday-strip {margin:8px 0 14px;font-size:10px;letter-spacing:.7px;min-height:28px}
+.screen-content {animation:qfc-screen-in .32s var(--menu-ease) backwards}
+.game-footer {border-top-color:var(--panel-edge);opacity:.85;font-size:10px}
+
+/* A matchday title panel with an original pitch-line motif. */
+.journal-heading,.hub-title {
+  position:relative;isolation:isolate;overflow:hidden;
+  padding:26px 28px;margin:5px 0 22px;min-height:134px;
+  border:1px solid var(--panel-edge);border-left:3px solid var(--accent);
+  background:linear-gradient(110deg,var(--surface),color-mix(in srgb,var(--retro-purple) 16%,var(--surface-low)));
+}
+.journal-heading:after,.hub-title:after {
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  width:280px;height:170px;right:22%;bottom:-62px;transform:rotate(-19deg);
+  border:1px solid color-mix(in srgb,var(--accent) 14%,transparent);
+  background:radial-gradient(circle at 50% 50%,transparent 0 35px,color-mix(in srgb,var(--accent) 12%,transparent) 36px 37px,transparent 38px),
+    linear-gradient(90deg,transparent 49.7%,color-mix(in srgb,var(--accent) 12%,transparent) 49.7% 50.3%,transparent 50.3%);
+  box-shadow:0 0 0 14px color-mix(in srgb,var(--retro-purple) 6%,transparent),0 0 0 40px color-mix(in srgb,var(--retro-purple) 4%,transparent);
+}
+.football-app .eyebrow {font-size:10px;font-weight:650;letter-spacing:1.6px;color:var(--muted)}
+.journal-heading .eyebrow,.hub-title .eyebrow {color:var(--accent);font-size:9px;letter-spacing:2px}
+.football-app :is(.journal-heading h1,.hub-title h1) {font-size:clamp(38px,3.5vw,55px);letter-spacing:.6px;margin:5px 0 5px;line-height:1.08}
+.journal-heading p {font-size:13px;line-height:1.7;margin:8px 0 0;color:var(--muted)}
+.journal-heading .button-row {position:relative;gap:10px;flex-shrink:0}
+.journal-heading .button-row>button,.hub-title>.primary {min-height:48px;font-size:12px;padding:12px 18px}
+.football-app :is(.primary,.secondary),.football-overlays :is(.primary,.secondary) {border-radius:2px;min-height:42px;transition:transform .16s var(--menu-ease),box-shadow .2s var(--menu-ease),background .2s var(--menu-ease),border-color .2s var(--menu-ease)}
+.football-app .primary,.football-overlays .primary {box-shadow:0 4px 18px color-mix(in srgb,var(--accent) 10%,transparent);font-weight:750}
+.football-app .primary:hover:not(:disabled),.football-overlays .primary:hover:not(:disabled) {box-shadow:0 0 0 1px var(--accent),0 6px 24px color-mix(in srgb,var(--accent) 16%,transparent);filter:brightness(1.03)}
+.football-app .secondary:hover:not(:disabled),.football-overlays .secondary:hover:not(:disabled) {border-color:var(--accent);color:var(--text)}
+:is(.football-app,.football-overlays) :is(button,summary):active:not(:disabled) {transform:translateY(1px) scale(.985)}
+:is(.football-app,.football-overlays) :is(button,summary,a):focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+
+/* Clear menu tabs, search and filters with one consistent selection colour. */
+.journal-controls {background:var(--panel-fill);border-color:var(--panel-edge);padding:14px 18px;margin-bottom:14px}
+.journal-top-controls {gap:16px;padding-bottom:13px;border-bottom:1px solid var(--panel-edge)}
+.journal-views {border:1px solid var(--line);background:var(--surface-low);gap:0}
+.journal-views button {position:relative;min-height:46px;padding:10px 18px;font-size:12px;gap:9px;transition:background .22s var(--menu-ease),color .22s var(--menu-ease),box-shadow .22s var(--menu-ease)}
+.journal-views button.selected {background:linear-gradient(120deg,color-mix(in srgb,var(--retro-purple) 28%,var(--surface)),var(--surface-high));box-shadow:inset 0 -3px var(--accent);color:var(--accent)}
+.journal-views button:not(.selected):hover {color:var(--text);background:var(--surface-high)}
+.journal-views button.selected svg {filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent) 30%,transparent))}
+.journal-search {min-height:46px;border:1px solid var(--line);background:var(--surface-low);transition:border-color .2s,box-shadow .2s}
+.journal-search:focus-within {border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.journal-search input {font-size:13px;background:transparent;min-height:44px}
+.journal-search kbd {opacity:.7}
+.journal-filter-row {padding:9px 0 3px}
+.journal-status {gap:23px}
+.journal-status button {font-size:12px;min-height:40px;transition:color .18s,border-color .18s}
+.journal-status button.selected {font-weight:650}
+.journal-scope {gap:7px;padding-top:7px}
+.journal-scope button {font-size:11px;min-height:33px;padding:6px 11px;border:1px solid var(--line);background:var(--surface-low);transition:background .18s,border-color .18s,color .18s}
+.journal-scope button.selected {border-color:color-mix(in srgb,var(--accent) 50%,var(--line));background:var(--accent-soft)}
+.journal-scope>span {font-size:11px;font-variant-numeric:tabular-nums}
+.journal-selects select {min-height:42px;font-size:12px;background:var(--surface-low)}
+.journal-refine-toggle {font-size:11px;min-height:40px}
+.journal-selects.is-open {animation:qfc-content-in .22s var(--menu-ease) backwards}
+.task-list-caption {font-size:11px;margin-bottom:6px}
+.task-list-caption>button {font-size:11px;min-height:40px}
+.task-list-head {font-size:10px;letter-spacing:1.4px;padding-block:9px 12px;border-color:var(--panel-edge)}
+.journal-task-list {gap:8px}
+.journal-content {animation:qfc-content-in .26s var(--menu-ease) backwards}
+.task-disclosure-row {animation:qfc-row-in .32s var(--menu-ease) var(--row-delay,0ms) backwards;transition:transform .22s var(--menu-ease)}
+.task-disclosure {background:var(--panel-fill);border-color:var(--panel-edge);border-left:3px solid var(--task-priority);transition:box-shadow .24s var(--menu-ease),border-color .22s var(--menu-ease),background .22s var(--menu-ease)}
+.task-disclosure[data-open="true"] {background:var(--surface);box-shadow:0 12px 30px #08051b20;border-color:color-mix(in srgb,var(--accent) 38%,var(--line));border-left-color:var(--task-priority)}
+.task-disclosure-row>.task-disclosure>.task-summary {width:100%;border:0;border-bottom:1px solid transparent;background:transparent;text-align:left;font:inherit;color:var(--text);min-height:72px;padding-top:16px;padding-bottom:16px;padding-right:75px}
+.task-disclosure[data-open="true"]>.task-summary {border-bottom-color:var(--panel-edge);background:linear-gradient(105deg,var(--accent-soft),transparent)}
+.task-summary-title {font-size:15px;font-weight:600;letter-spacing:0;line-height:1.5}
+.task-summary-dates {gap:11px}
+.task-date {font-size:11px}
+.task-summary-priority {justify-self:center;border:1px solid color-mix(in srgb,var(--task-priority) 30%,transparent);background:color-mix(in srgb,var(--task-priority) 8%,transparent);min-width:48px;min-height:31px;padding:5px 7px;gap:6px;border-radius:2px}
+.task-summary-priority small {font-size:10px;letter-spacing:.3px}
+.task-summary-priority svg {width:13px}
+.task-expand-chevron {transition:transform .28s var(--menu-ease),color .2s}
+.task-direct-edit {right:12px;top:14px;border-color:var(--panel-edge);background:var(--surface-low);transition:background .2s,border-color .2s,transform .16s var(--menu-ease)}
+.task-direct-edit:hover {background:var(--accent-soft);border-color:var(--accent)}
+
+/* Grid tracks animate to the content's real height, including long notes. */
+.task-reveal {display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .28s var(--menu-ease),opacity .2s var(--menu-ease),visibility 0s .28s}
+.task-reveal[data-open="true"] {grid-template-rows:1fr;opacity:1;visibility:visible;transition-delay:0s}
+.task-reveal-clip {min-height:0;overflow:hidden}
+.task-expanded {animation:none!important;padding:20px 22px 0}
+.task-expanded-meta {font-size:11px;margin-bottom:20px;gap:10px 20px}
+.task-expanded-layout {margin-bottom:22px}
+.task-briefing h4 {font-size:10px;letter-spacing:1.3px}
+.task-briefing>p {font-size:13px;line-height:1.85}
+.task-expanded-planning>label,.task-expanded-planning>p {font-size:11px}
+.task-expanded-planning select {font-size:12px;min-height:42px;padding:9px 11px;border-color:var(--panel-edge)}
+.task-expanded>footer {margin-inline:-22px;padding:13px 22px;border-top-color:var(--panel-edge)}
+.task-expanded footer :is(.primary,.secondary),.task-edit-action {min-height:42px;font-size:12px}
+.task-inline-steps>label {min-height:42px;line-height:1.6}
+.journal-add-card {min-height:54px;border-color:var(--panel-edge);background:color-mix(in srgb,var(--surface-low) 70%,transparent);font-size:12px;transition:background .2s,border-color .2s}
+.journal-add-card:hover {background:var(--accent-soft);border-color:var(--accent)}
+.journal-footnote {font-size:10px;line-height:1.8;margin-top:22px}
+.journal-column {border-color:var(--panel-edge);padding:16px;background:color-mix(in srgb,var(--surface-low) 80%,transparent)}
+.journal-column header h2 {font-size:27px}
+.journal-column>header {border-bottom:1px solid var(--panel-edge);padding-bottom:15px;margin-bottom:13px}
+.journal-column header p {font-size:11px;line-height:1.7}
+.journal-subject-card {padding:24px 22px;box-shadow:none;transition:transform .24s var(--menu-ease),border-color .24s var(--menu-ease),box-shadow .24s var(--menu-ease)}
+.journal-subject-card h3 {font-size:28px}
+.journal-subject-card p {font-size:12px}
+.journal-subject-card .text-button {font-size:12px;min-height:44px}
+.journal-mini-track {height:4px;background:var(--line)}
+.journal-mini-track i,.xp-track i,.active-training-progress i {transition:width .65s var(--menu-ease)}
+
+/* Poster-like career tiles and an uncluttered training panel. */
+.career-hub-grid {gap:12px}
+.game-tile {border-color:var(--panel-edge);background:var(--panel-fill);transition:border-color .24s,box-shadow .24s,transform .24s var(--menu-ease)}
+.career-hub-grid>.game-tile,.career-hub-grid>.hub-focus {animation:qfc-row-in .38s var(--menu-ease) backwards}
+.career-hub-grid>:nth-child(2) {animation-delay:40ms}
+.career-hub-grid>:nth-child(3) {animation-delay:80ms}
+.career-hub-grid>:nth-child(4) {animation-delay:110ms}
+.career-hub-grid>:nth-child(5) {animation-delay:140ms}
+.career-hub-grid>:nth-child(6) {animation-delay:170ms}
+.tile-heading h2 {font-size:28px}
+.lineup-tile .tile-heading {padding:22px;border-color:var(--panel-edge)}
+.tile-heading .tile-number {color:var(--accent);opacity:.28;font-size:45px;font-weight:400}
+.lineup-quests {margin-top:12px;margin-bottom:12px}
+.tile-link {font-size:11px;min-height:44px;border-top-color:var(--panel-edge);transition:color .2s,background .2s}
+.tile-link:hover {background:var(--accent-soft)}
+.hub-player-tile {border-color:color-mix(in srgb,var(--accent) 55%,var(--line));background:radial-gradient(ellipse at 60% 35%,color-mix(in srgb,var(--retro-purple) 48%,var(--surface)),var(--surface-low) 75%)}
+.hub-player-tile:before {opacity:.15}
+.hub-player-tile:after {font-size:260px;letter-spacing:-16px;opacity:.06;top:18%}
+.player-tile-title {padding:20px 22px;font-size:12px;letter-spacing:1px}
+.player-tile-caption {padding:22px;background:linear-gradient(0deg,var(--surface-low) 35%,transparent)}
+.player-tile-caption h2 {font-size:43px;letter-spacing:.5px}
+.player-tile-caption p {font-size:11px;margin-top:9px}
+.player-tile-caption .xp-track {height:4px;margin-top:12px}
+.player-edit-button {border:1px solid var(--accent);background:var(--accent-soft);width:44px;height:44px;transition:background .2s,transform .2s}
+.football-app .hub-focus .focus-card {background:linear-gradient(150deg,color-mix(in srgb,var(--retro-purple) 15%,var(--surface)),var(--surface-low));border-color:var(--panel-edge)}
+.hub-focus .focus-card:before {opacity:.55}
+.football-app .focus-clock {font-family:var(--heading-font);font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.hub-focus .focus-controls>button {min-height:46px;font-size:12px}
+.fixtures-tile .tile-heading {padding:22px 20px 15px}
+.fixture-row {min-height:68px;transition:background .2s}
+.fixture-row:hover {background:var(--accent-soft)}
+.fixture-row strong {font-size:12px}
+.coach-tile {padding:22px;gap:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--retro-purple) 24%,var(--surface)),var(--surface-low))}
+.coach-tile h2 {font-size:28px}
+.coach-tile p {font-size:12px;line-height:1.8}
+.week-tile {padding:22px 24px}
+.week-tile .form-stats b {font-size:39px}
+.week-tile .form-stats span {font-size:11px}
+.week-tile>p {font-size:11px}
+.active-training-bar {box-shadow:0 12px 45px #05031860;border-color:var(--accent);animation:qfc-content-in .28s var(--menu-ease)}
+.mobile-career-nav button {transition:color .2s,background .2s;position:relative}
+.mobile-career-nav button>svg {transition:transform .24s var(--menu-ease)}
+.mobile-career-nav button.active>svg {transform:translateY(-2px)}
+.mobile-career-nav button.active {background:linear-gradient(180deg,var(--accent-soft),transparent)}
+
+/* The editor shares the same materials and deliberate enter/exit motion. */
+.football-overlays .modal-backdrop {background:#080719b8;backdrop-filter:blur(8px);animation:qfc-backdrop-in .18s ease-out both}
+.football-overlays .modal {border-color:var(--line);box-shadow:0 32px 100px #03011780,0 0 0 1px #ffffff05;animation:qfc-dialog-in .26s var(--menu-ease) backwards}
+.football-overlays .modal-backdrop[data-closing="true"] {animation:qfc-backdrop-out .16s ease-in both}
+.football-overlays .modal-backdrop[data-closing="true"]>.modal {animation:qfc-dialog-out .16s ease-in both}
+.football-overlays .modal-heading {border-bottom:1px solid var(--panel-edge);padding-bottom:18px;margin-bottom:22px}
+.football-overlays .modal-heading h2 {font-size:32px;letter-spacing:.5px}
+.dialog-display-controls select {min-height:36px;background:var(--surface-low);font-size:11px;border-color:var(--line)}
+.football-overlays .composer-title>span {color:var(--accent);font-size:10px;letter-spacing:1.6px}
+.football-overlays .composer-title>input {border-bottom:2px solid var(--line);font-size:26px;font-weight:550;background:transparent;line-height:1.4}
+.football-overlays .composer-section {border:1px solid var(--panel-edge);background:color-mix(in srgb,var(--surface-low) 35%,var(--surface));padding:20px}
+.football-overlays .composer-section>header h3 {font-size:15px;letter-spacing:0}
+.football-overlays .composer-section>header>span {color:var(--accent);background:var(--accent-soft);border-radius:2px}
+.football-overlays .composer-section>header p {font-size:12px;line-height:1.7}
+.football-overlays .composer-preview {border-top:3px solid var(--subject-color);background:var(--panel-fill);box-shadow:0 12px 30px #07051e20}
+.football-overlays :is(input,select,textarea) {background:var(--surface-low);border-color:var(--line);transition:border-color .18s,box-shadow .18s}
+.football-overlays :is(input,select,textarea):focus {border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.football-overlays .composer-options select {font-size:13px;min-height:44px}
+.football-overlays .composer-date-chips button,.football-overlays .composer-duration button {transition:background .18s,color .18s,border-color .18s}
+.football-overlays .composer-footer {background:var(--surface);border-top-color:var(--line)}
+.theme-popover,.sync-popover,.planner-date-popover {animation:qfc-popover-in .2s var(--menu-ease) backwards;border-color:var(--line);box-shadow:0 20px 55px #05031845}
+.theme-popover button {min-height:46px;transition:background .18s,color .18s}
+.football-overlays .toast {animation:qfc-toast-in .3s var(--menu-ease) backwards;border-color:var(--line);border-left-color:var(--accent);box-shadow:0 16px 45px #05031845}
+.app-loading {background:radial-gradient(ellipse at center,color-mix(in srgb,var(--retro-purple) 14%,var(--bg)),var(--bg));gap:16px}
+.loading-crest {box-shadow:0 0 40px var(--accent-soft)}
+.app-loading h1 {letter-spacing:2px;font-size:35px}
+
+@media(hover:hover) and (pointer:fine) {
+  .task-disclosure-row:hover {transform:translateX(3px)}
+  .task-disclosure-row:hover>.task-disclosure {border-top-color:color-mix(in srgb,var(--accent) 50%,var(--line));border-bottom-color:color-mix(in srgb,var(--accent) 50%,var(--line));box-shadow:0 7px 24px #07051c20}
+  .journal-subject-card:hover {transform:translateY(-4px);border-color:var(--subject-color);box-shadow:0 15px 35px #05031820}
+  button.game-tile:hover {transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 60%,var(--line));box-shadow:0 14px 35px #05031830}
+  .tile-link:hover>svg,.text-button:hover>svg,.task-edit-action:hover>svg {transform:translate(2px,-2px)}
+  :is(.tile-link,.text-button,.task-edit-action)>svg {transition:transform .2s var(--menu-ease)}
+}
+@media(min-width:1100px) {
+  .journal-top-controls {align-items:center}
+  .journal-search {max-width:390px}
+}
+@media(max-width:1150px) {
+  .journal-heading,.hub-title {padding:23px;min-height:126px}
+  .journal-views button {padding-inline:13px;font-size:11px}
+  .career-navigation>button {font-size:20px;padding-inline:12px}
+  .journal-search {min-width:190px}
+  .task-summary-priority {min-width:44px;padding-inline:5px}
+}
+@media(max-width:900px) {
+  .game-header {min-height:90px}
+  .club-identity strong {font-size:25px}
+  .career-navigation>button {font-size:18px}
+  .journal-heading,.hub-title {padding:22px}
+  .journal-heading .button-row {gap:7px}
+  .journal-heading .button-row>button {padding-inline:12px;font-size:11px}
+  .journal-controls {padding:12px}
+  .journal-top-controls {gap:12px;flex-wrap:wrap}
+  .journal-views {flex:1}
+  .journal-views button {flex:1}
+  .journal-search {min-width:190px;flex:1}
+  .task-date {font-size:10px}
+  .task-summary-priority {min-width:38px;gap:4px}
+  .task-expanded {padding-inline:18px}
+  .task-expanded>footer {margin-inline:-18px;padding-inline:18px}
+}
+@media(max-width:600px) {
+  .football-app {padding:0 15px 104px}
+  .game-header {min-height:0;padding:10px 0 9px;row-gap:8px;margin-bottom:10px}
+  .club-crest {height:36px;width:31px;font-size:21px}
+  .club-identity strong {font-size:24px;line-height:1.1}
+  .club-identity div>span {font-size:7px;letter-spacing:1px}
+  .header-controls {gap:8px;flex-basis:100%;min-width:0}
+  .matchday-strip {font-size:10px;margin:0 0 10px;padding:4px 0;border:0;min-height:0}
+  .matchday-strip .mobile-save>summary {min-height:44px;margin-block:-10px}
+  .journal-heading,.hub-title {padding:21px 19px;min-height:0;gap:20px;margin:3px 0 16px}
+  .journal-heading:after,.hub-title:after {right:-90px;width:240px;opacity:.65}
+  .journal-heading .eyebrow,.hub-title .eyebrow {font-size:8px;letter-spacing:1.6px}
+  .football-app :is(.journal-heading h1,.hub-title h1) {font-size:38px;line-height:1.12;margin-top:8px}
+  .journal-heading {padding:18px;gap:15px;margin-bottom:14px}
+  .journal-heading p {display:none}
+  .journal-heading .button-row {width:100%;gap:8px}
+  .journal-heading .button-row>button {min-height:46px;font-size:12px;flex:1;justify-content:center;padding:11px 9px}
+  .hub-title {align-items:center}
+  .hub-title>.primary {font-size:11px!important;min-height:44px!important;padding-inline:12px!important;flex-shrink:0}
+  .title-period {font-size:23px}
+  .journal-controls {padding:9px 11px 10px;margin-bottom:8px}
+  .journal-top-controls {gap:8px;padding-bottom:8px}
+  .journal-views {width:100%;flex:0 0 100%}
+  .journal-views button {font-size:10px;padding:8px 3px;min-height:50px;gap:5px}
+  .journal-search {flex:0 0 100%;width:100%;min-width:0;min-height:46px}
+  .journal-search input {font-size:16px;min-height:44px}
+  .journal-filter-row {padding-top:7px;gap:4px 12px}
+  .journal-status {gap:18px}
+  .journal-status button {font-size:11px;min-height:44px}
+  .journal-refine-toggle {font-size:10px;min-height:44px;gap:5px}
+  .journal-scope {gap:6px;padding-top:5px}
+  .journal-scope button {min-height:36px;padding:7px 9px;font-size:10px}
+  .journal-scope>span {font-size:10px;flex-basis:100%;padding-top:6px}
+  .journal-selects select {font-size:16px;min-height:44px}
+  .task-list-caption {font-size:10px;gap:8px;margin-bottom:6px}
+  .task-list-caption>button {font-size:10px;min-height:42px}
+  .journal-task-list {gap:8px}
+  .task-disclosure-row>.task-disclosure>.task-summary {min-height:86px;padding:14px 68px 14px 14px;gap:7px 9px;grid-template-columns:minmax(0,1fr) 42px 14px}
+  .task-summary-title {font-size:14px;line-height:1.55;font-weight:600}
+  .task-summary-dates {gap:9px}
+  .task-date {font-size:10px}
+  .task-summary-priority {min-width:39px;min-height:30px;padding:5px;gap:4px;align-self:center}
+  .task-summary-priority small {font-size:9px}
+  .task-direct-edit {top:21px;right:9px;width:44px;height:44px}
+  .task-expanded {padding:17px 16px 0}
+  .task-expanded-meta {font-size:10px;gap:8px 12px;margin-bottom:18px}
+  .task-briefing>p {font-size:13px;line-height:1.85}
+  .task-expanded-planning {padding-top:15px;border-top-color:var(--panel-edge)}
+  .task-expanded-planning select {font-size:16px;min-height:44px}
+  .task-expanded>footer {margin-inline:-16px;padding:12px 14px;gap:8px}
+  .task-expanded footer :is(.primary,.secondary),.task-edit-action {min-height:44px;font-size:11px}
+  .task-edit-action {gap:4px}
+  .task-expanded footer :is(.primary,.secondary) {padding-inline:10px}
+  .journal-footnote {font-size:9px;margin-top:20px}
+  .journal-column {padding:12px}
+  .journal-board .task-disclosure-row>.task-disclosure>.task-summary,.lineup-quests .task-disclosure-row>.task-disclosure>.task-summary {padding-right:64px}
+  .journal-board .task-direct-edit,.lineup-quests .task-direct-edit {top:21px;width:44px;height:44px}
+  .journal-board .task-expanded {padding:17px 16px 0}
+  .journal-board .task-expanded>footer {margin-inline:-16px;padding:12px 14px}
+  .journal-subject-card {padding:20px 15px}
+  .journal-subject-card h3 {font-size:23px}
+  .journal-subject-card p {font-size:10px}
+  .journal-subject-card .text-button {font-size:11px}
+  .career-hub-grid {gap:10px}
+  .hub-player-tile {height:350px;min-height:350px}
+  .player-tile-title {padding:18px;font-size:11px}
+  .player-tile-caption {padding:20px 18px;background:linear-gradient(90deg,var(--surface-low),transparent)}
+  .player-tile-caption h2 {font-size:42px}
+  .player-tile-caption p {font-size:10px}
+  .lineup-tile .tile-heading {padding:20px 18px 16px}
+  .tile-heading h2 {font-size:27px}
+  .hub-focus .card-eyebrow>span:first-child {font-size:23px}
+  .hub-focus .focus-controls>button {font-size:11px;min-height:46px}
+  .fixtures-tile .tile-heading {padding:19px 14px 12px}
+  .fixtures-tile .tile-heading h2 {font-size:23px}
+  .coach-tile {padding:21px 18px}
+  .coach-tile h2 {font-size:26px}
+  .coach-tile p {font-size:11px}
+  .week-tile {padding:21px 18px}
+  .week-tile .form-stats b {font-size:35px}
+  .week-tile .form-stats span {font-size:10px}
+  .week-tile>p {font-size:10px}
+  .mobile-career-nav {background:color-mix(in srgb,var(--surface-low) 96%,transparent);border-top:1px solid var(--line);box-shadow:0 -8px 30px #05031835}
+  .mobile-career-nav button {min-height:58px;font-size:10px}
+  .football-overlays .modal-heading h2 {font-size:28px}
+  .football-overlays .modal-heading {padding-bottom:16px}
+  .football-overlays .composer-title>input {font-size:23px}
+  .football-overlays .composer-section {padding:17px}
+  .football-overlays .composer-section>header p {font-size:11px}
+  .football-overlays .composer-section>header h3 {font-size:15px}
+  .football-overlays .composer-options select {font-size:16px}
+}
+@media(max-width:380px) {
+  .journal-heading,.hub-title {padding-inline:16px}
+  .football-app :is(.journal-heading h1,.hub-title h1) {font-size:35px}
+  .journal-status {gap:13px}
+  .journal-status button {font-size:10px}
+  .journal-refine-toggle {font-size:9px}
+  .task-expanded>footer {flex-wrap:wrap}
+  .task-expanded footer>div {margin-left:auto}
+}
+@keyframes qfc-screen-in {from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes qfc-content-in {from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes qfc-row-in {from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes qfc-backdrop-in {from{opacity:0}to{opacity:1}}
+@keyframes qfc-backdrop-out {from{opacity:1}to{opacity:0}}
+@keyframes qfc-dialog-in {from{opacity:0;transform:translateY(15px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes qfc-dialog-out {from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(8px) scale(.99)}}
+@keyframes qfc-popover-in {from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes qfc-toast-in {from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+@media(prefers-reduced-motion:reduce) {
+  *,*:before,*:after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .task-disclosure-row:hover,.journal-subject-card:hover,button.game-tile:hover,.mobile-career-nav button.active>svg {transform:none}
+}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *:before,html[data-motion="reduce"] *:after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html[data-motion="reduce"] :is(.task-disclosure-row,.journal-subject-card,button.game-tile):hover,html[data-motion="reduce"] .mobile-career-nav button.active>svg {transform:none}

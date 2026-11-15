@@ -1,0 +1,45 @@
+{
+  "assetVersion": "human-v1",
+  "assetLicense": "CC0-1.0",
+  "software": [
+    {
+      "name": "Blender",
+      "version": "4.5.16 LTS arm64",
+      "license": "GPL-3.0-or-later (tooling only; not bundled)",
+      "source": "https://download.blender.org/release/Blender4.5/",
+      "downloadSha256": "c5cd40979f30033bc55ca84fccd00f2c1ddebb1d2f41618f220ef1f596d8b0f6"
+    },
+    {
+      "name": "MPFB",
+      "version": "2.0.18",
+      "license": "GPL-3.0-or-later code (not bundled); CC0-1.0 graphical data and output",
+      "source": "https://extensions.blender.org/add-ons/mpfb/",
+      "downloadSha256": "c075b3e9b94b8e5556a5f03f4653602d02ea306de08126e8f55ed6dee28a2dad"
+    }
+  ],
+  "assets": [
+    {
+      "name": "MakeHuman/MPFB anatomical base, clothing helper topology, modeling targets, game_engine rig and weights",
+      "license": "CC0-1.0",
+      "authors": "MakeHuman Team / MakeHuman Community",
+      "source": "https://github.com/makehumancommunity/mpfb2",
+      "licenseSource": "https://github.com/makehumancommunity/mpfb2/blob/master/LICENSE.md"
+    },
+    {
+      "name": "MakeHuman system assets: young_caucasian_male2 skin; high-poly eyes/brown eye atlas; teeth_base; eyebrow001; eyelashes01; short01, short02, short03, short04, ponytail01 hair",
+      "license": "CC0-1.0",
+      "authors": "MakeHuman system assets. Source notices credit Data Collection AB, Joel Palmius and Jonas Hauquier (2020 CC0 release).",
+      "source": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+      "download": "https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip"
+    },
+    {
+      "name": "Questbound FC jersey, collar/cuff/hem ribbons, shorts, socks, goalkeeper gloves/wrist cuffs, armband, boots/laces/studs, original short curls, pore normal, rig animation, authoring/validation scripts and rendered images",
+      "license": "CC0-1.0",
+      "authors": "Original work authored for Questbound FC with Codex; garments derive from CC0 anatomical clothing-helper topology."
+    }
+  ],
+  "notes": [
+    "Only CC0 system assets and original assets are included. No CC-BY packs, paid assets, names, logos or real-person likenesses are used.",
+    "Tooling installers and the complete downloaded asset library remain outside the repository. Source .blend embeds only the used assets."
+  ]
+}

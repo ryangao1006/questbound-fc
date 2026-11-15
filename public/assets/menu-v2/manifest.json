@@ -1,0 +1,12 @@
+{
+  "id": "football-menu-v2",
+  "version": 1,
+  "source": "Original SVG authored for Questbound FC; no EA artwork or third-party assets.",
+  "rights": "Project-original artwork, free of third-party asset fees.",
+  "assets": {
+    "stadium-light.svg": {
+      "bytes": 1616,
+      "sha256": "81b560ba54cc59fd2f89fc2c340227192b18bcf9280552d3b3b125029b86c6c1"
+    }
+  }
+}

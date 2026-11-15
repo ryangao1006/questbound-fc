@@ -1,0 +1,49 @@
+/* Two appearances of one original football career menu. Stable saved IDs are retained. */
+:root,[data-theme="night-stadium"],.football-app.comic-ui[data-theme="night-stadium"]{--bg:#06162d;--surface:#0e2845;--surface-high:#183954;--surface-low:#0a2038;--text:#f5f8ff;--muted:#bbcee0;--line:#466681;--accent:#ffe14a;--accent-ink:#13263c;--accent-soft:#ffe14a16;--selection:#ffe14a;--selection-ink:#13263c;--shell-text:#f5f8ff;--shell-muted:#bbcee0;--danger:#ffb4ae;--danger-text:#ffb4ae;--danger-surface:#482730;--shadow:0 8px 24px #03112750;--menu-rail:#091e35;--menu-header:#0b223de8;color-scheme:dark}
+:root[data-theme="classic-career"],[data-theme="classic-career"],.football-app.comic-ui[data-theme="classic-career"]{--bg:#dceaf3;--surface:#f8fbfd;--surface-high:#e9f0f7;--surface-low:#dce7f0;--text:#12283f;--muted:#425d73;--line:#9eb5c7;--accent:#1e4c76;--accent-ink:#ffffff;--accent-soft:#1e4c7612;--selection:#ffe14a;--selection-ink:#13263c;--shell-text:#112941;--shell-muted:#3e5971;--danger:#b42331;--danger-text:#b42331;--danger-surface:#fff0ef;--shadow:0 6px 22px #284b671c;--menu-rail:#f2f7fceF;--menu-header:#f6faffed;color-scheme:light}
+.football-app.comic-ui{--heading-font:Impact,'Arial Narrow','PingFang SC',sans-serif;background:var(--bg)!important}
+.football-app.comic-ui .stadium-scenery{background:linear-gradient(90deg,#03112752,#03112700 55%,#03112752),url('/assets/comic-v1/stadium.svg') center top/cover no-repeat}
+.football-app.comic-ui[data-theme="classic-career"] .stadium-scenery{background:linear-gradient(180deg,#e9f4fa33,#eff6fa40),url('/assets/menu-v2/stadium-light.svg') center top/cover no-repeat}
+.football-app.comic-ui .game-header{background:var(--menu-header);color:var(--shell-text);border-color:var(--line);padding-inline:12px}
+.football-app.comic-ui :is(.club-identity strong,.header-player,.header-player b){color:var(--shell-text)}
+.football-app.comic-ui .club-identity strong em{color:var(--shell-text)}
+.football-app.comic-ui .rating-hex{background:var(--surface-high);color:var(--text);border:1px solid var(--line);box-shadow:inset 3px 0 var(--selection)}
+.football-app.comic-ui :is(.career-navigation,.fc-tabs,.settings-tabs){background:var(--menu-rail);border-color:var(--line);border-radius:2px}
+.football-app.comic-ui :is(.career-navigation>button,.fc-tabs button,.settings-tabs button){color:var(--text)}
+.football-app.comic-ui :is(.career-navigation>button.active,.fc-tabs button.selected,.settings-tabs button.active){background:var(--selection);color:var(--selection-ink);box-shadow:inset 0 -3px #dfb72a}
+.football-app.comic-ui :is(.game-save,.matchday-strip,.game-footer,.fc-provenance){color:var(--shell-muted)}
+.football-app.comic-ui :is(.hub-title,.page-heading,.fc-page-heading){color:var(--shell-text)}
+.football-app.comic-ui :is(.hub-title h1,.page-heading h1,.fc-page-heading h1){color:var(--shell-text)!important}
+.football-app.comic-ui :is(.hub-title .eyebrow,.hub-title .title-period,.fc-page-heading p,.fc-planner-level small,.page-heading p){color:var(--shell-muted)}
+.football-app.comic-ui .game-footer{background:var(--menu-header);padding:10px 12px;border-top:1px solid var(--line)}
+.football-app.comic-ui :is(.card,.game-tile){background:var(--surface);border-color:var(--line);box-shadow:var(--shadow);border-radius:3px}
+.football-app.comic-ui .tile-heading{border-top:3px solid var(--selection)}
+.football-app.comic-ui .task-workspace{--ws-bg:var(--surface);--ws-row:var(--surface);--ws-hover:var(--surface-high);--ws-border:var(--line);--ws-text:var(--text);--ws-muted:var(--muted);--ws-accent:var(--accent);background:var(--surface);border-top-color:var(--selection)}
+.football-app.comic-ui :is(.ws-main-workspace,.ws-project-rail,.ws-row){background:var(--surface);color:var(--text)}
+.football-app.comic-ui .board-task{background:var(--surface-high);border-color:var(--line)}
+.football-app.comic-ui :is(.ws-row:hover,.board-task:hover){border-color:var(--accent)}
+.football-app.comic-ui .fc-career{--fc-surface:var(--surface);--fc-raised:var(--surface-high);--fc-border:var(--line);--fc-text:var(--text);--fc-muted:var(--muted);--fc-accent:var(--accent)}
+.football-app.comic-ui :is(.mobile-career-nav,.active-training-bar){background:var(--menu-rail);color:var(--text);border-color:var(--line)}
+.football-app.comic-ui .mobile-career-nav button{color:var(--muted)}
+.football-app.comic-ui .mobile-career-nav button.active{background:var(--selection);color:var(--selection-ink)}
+.football-app.comic-ui .hub-player-tile{--text:#f5f8ff;--muted:#c5d9ed;--accent:#ffe14a;--accent-ink:#13263c;background:radial-gradient(ellipse at 50% 35%,#4386b7,#102e51 70%)!important;color:#f5f8ff}
+.football-app.comic-ui .hub-player-tile :is(.eyebrow,.tile-heading,.player-tile-caption){color:#f5f8ff}
+.football-app.comic-ui .calendar-event{background:var(--surface-high)!important;color:var(--text)!important}
+.football-app.comic-ui :is(.theme-cards,.theme-popover){grid-template-columns:repeat(2,minmax(0,1fr))}
+.theme-preview,.theme-swatch{border-radius:3px!important;border:1px solid var(--line)}
+.swatch-night-stadium{background:linear-gradient(145deg,#0b223d 0 62%,#ffe14a 62% 72%,#1c4f78 72%)}
+.swatch-classic-career{background:linear-gradient(145deg,#e9f2fa 0 62%,#ffe14a 62% 72%,#8ab4cd 72%)}
+.theme-cards>button{border-radius:3px!important}.theme-cards>button.selected{border-color:var(--accent);box-shadow:inset 0 -3px var(--selection)}
+.football-overlays .modal{color-scheme:inherit}
+:root[data-theme="classic-career"] :is(.modal,.football-overlays) :is(input,select,textarea){color-scheme:light}
+.football-overlays[data-theme="classic-career"] .dorm-modal{--text:#12283f;--muted:#425d73;--surface:#f8fbfd;--surface-high:#e9f0f7;--surface-low:#dce7f0;--line:#9eb5c7;--accent:#1e4c76;--accent-ink:#fff;--selection:#ffe14a;--selection-ink:#13263c;background:var(--surface)!important;color:var(--text)!important;border-color:var(--line)!important}
+.football-overlays[data-theme="classic-career"] .dorm-modal :is(.dorm-toolbar>span,.muted){color:var(--muted)!important}
+.football-overlays[data-theme="classic-career"] .dorm-modal :is(.secondary,.text-button,.dorm-pad button,.dorm-object-shortcuts button){background:var(--surface-high);border-color:var(--line);color:var(--text)}
+.football-overlays[data-theme="classic-career"] .dorm-modal .dorm-object-shortcuts button:hover{background:var(--selection);color:var(--selection-ink)}
+.football-app.comic-ui :is(button,a,summary):focus-visible{outline-color:var(--accent)}
+.football-app.comic-ui .career-navigation button:focus-visible{outline-color:var(--selection-ink);outline-offset:-4px}
+html[lang="zh-CN"] .football-app.comic-ui :is(h1,h2){font-family:'PingFang SC','Microsoft YaHei',sans-serif;font-weight:800;letter-spacing:.02em}
+.football-app.comic-ui .career-navigation>button:not(.active):focus-visible{outline-color:var(--accent)}
+.football-app.comic-ui .fc-tabs button.selected:focus-visible{outline-color:var(--selection-ink);outline-offset:-4px}
+.football-app.comic-ui .theme-cards>button{border-radius:3px!important}
+.dorm-map>:is(span,button,small){color:#071321!important}

@@ -1,0 +1,226 @@
+{
+  "assetVersion": "human-v1",
+  "format": "glTF 2.0 binary; self-contained; no geometry decoder required",
+  "units": "metres",
+  "up": "+Y",
+  "front": "+Z",
+  "baseHeightMetres": 1.8,
+  "heightScale": "heightCm / 180",
+  "rig": {
+    "node": "PlayerRig",
+    "joints": 53,
+    "skinned": true
+  },
+  "files": {
+    "player.glb": {
+      "bytes": 8610816,
+      "sha256": "7e82f423b86ccc6d9832e9e79bd4ea6f941427f75f1ff674c43668bf030afddb"
+    },
+    "player-mobile.glb": {
+      "bytes": 5649696,
+      "sha256": "19b8052009e26f6b43a0f7bbe269ea28aa441a6ed6e06d9641b5325dd42b66ec"
+    }
+  },
+  "meshNodes": {
+    "Body": {
+      "material": "Skin",
+      "defaultVisible": true
+    },
+    "Feet": {
+      "material": "Skin",
+      "defaultVisible": false,
+      "visibleWhen": "boot meshes are hidden"
+    },
+    "Jersey": {
+      "material": "Jersey",
+      "defaultVisible": true
+    },
+    "Jersey_Trim_Collar": {
+      "material": "KitTrim",
+      "defaultVisible": true
+    },
+    "Jersey_Trim_Cuffs": {
+      "material": "KitTrim",
+      "defaultVisible": true
+    },
+    "Jersey_Trim_Hem": {
+      "material": "KitTrim",
+      "defaultVisible": true
+    },
+    "Shorts": {
+      "material": "Shorts",
+      "defaultVisible": true
+    },
+    "Socks": {
+      "material": "Socks",
+      "defaultVisible": true
+    },
+    "Eyes": {
+      "material": "Eyes",
+      "defaultVisible": true,
+      "preserveAlpha": true
+    },
+    "Teeth": {
+      "material": "Teeth",
+      "defaultVisible": true
+    },
+    "Eyebrows": {
+      "material": "Eyebrows",
+      "defaultVisible": true,
+      "preserveAlpha": true
+    },
+    "Eyelashes": {
+      "material": "Eyelashes",
+      "defaultVisible": true,
+      "preserveAlpha": true
+    },
+    "Gloves": {
+      "material": "Gloves",
+      "defaultVisible": false
+    },
+    "Gloves_Wrist": {
+      "material": "Boots",
+      "defaultVisible": false,
+      "visibleWhen": "Gloves are equipped"
+    },
+    "Armband": {
+      "material": "Armband",
+      "defaultVisible": false
+    },
+    "Boots_*": {
+      "materials": [
+        "Boots",
+        "BootSole",
+        "BootLaces"
+      ],
+      "defaultVisible": true
+    }
+  },
+  "hair": [
+    {
+      "index": 0,
+      "node": "Hair_0",
+      "material": "Hair_0",
+      "source": "CC0 short01",
+      "defaultVisible": true
+    },
+    {
+      "index": 1,
+      "node": "Hair_1",
+      "material": "Hair_1",
+      "source": "CC0 short02",
+      "defaultVisible": false
+    },
+    {
+      "index": 2,
+      "node": "Hair_2",
+      "material": "Hair_2",
+      "source": "CC0 short03",
+      "defaultVisible": false
+    },
+    {
+      "index": 3,
+      "node": "Hair_3",
+      "material": "Hair_3",
+      "source": "CC0 short04",
+      "defaultVisible": false
+    },
+    {
+      "index": 4,
+      "node": "Hair_4",
+      "material": "Hair_4",
+      "source": "original short curls over anatomical scalp",
+      "defaultVisible": false
+    },
+    {
+      "index": 5,
+      "node": "Hair_5",
+      "material": "Hair_5",
+      "source": "CC0 ponytail01",
+      "defaultVisible": false
+    }
+  ],
+  "morphs": {
+    "Muscle": {
+      "range": [
+        0,
+        1
+      ],
+      "applyTo": "Every mesh that exposes the target",
+      "note": "Lean to muscular athletic physique"
+    },
+    "Build": {
+      "range": [
+        0,
+        1
+      ],
+      "applyTo": "Every mesh that exposes the target",
+      "note": "Slim to fuller athletic build"
+    },
+    "Face_1..Face_5": {
+      "range": [
+        0,
+        1
+      ],
+      "oneHot": true,
+      "face0": "All five zero",
+      "applyTo": "Every mesh that exposes the target"
+    },
+    "normals": "Position morph targets retained; base vertex normals and skinning retained"
+  },
+  "animations": [
+    {
+      "name": "celebrate",
+      "seconds": 3.333
+    },
+    {
+      "name": "idle",
+      "seconds": 4.0
+    },
+    {
+      "name": "nod",
+      "seconds": 2.333
+    },
+    {
+      "name": "warmup",
+      "seconds": 4.0
+    }
+  ],
+  "materials": {
+    "Skin": "Opaque photographic CC0 fair-skin albedo plus original pore normal. Runtime tint multiplies albedo; use white (#ffffff) as the original fair reference, or tint toward desired skin colour. Do not replace the photo map.",
+    "Hair_0..Hair_5": "Set material.color from chosen hair colour; retain alpha maps on styles 0,1,2,3,5. Hair_4 is original opaque curl geometry.",
+    "KitTrim": "Set from selected kit trim colour.",
+    "BootLaces": "May set from equipment accent colour.",
+    "Eyes": "Preserve texture alpha for transparent cornea shell; forcing opaque causes black eyes."
+  },
+  "kitUV": {
+    "layout": "Front U .04..46, Back U .54..96; Blender V=0 hem, V=1 neckline. GLB UV coordinates are V flipped. Canvas top therefore maps to neckline with texture.flipY=false.",
+    "frontCanvasBounds": [
+      0.04,
+      0,
+      0.46,
+      1
+    ],
+    "backCanvasBounds": [
+      0.54,
+      0,
+      0.96,
+      1
+    ],
+    "frontCentreU": 0.25,
+    "backCentreU": 0.75,
+    "chestCanvasY": 0.22,
+    "backNumberCanvasY": 0.55,
+    "kitNumber": "Draw in generated canvas texture; no player identity baked into mesh."
+  },
+  "desktopVsMobile": "Identical mesh, skin, morph and animation contract. Phone maps are 512px hair/eyes/teeth and 1024px skin; desktop uses 1024px hair and up to 2048px core skin.",
+  "license": "CC0-1.0 assets; see LICENSES.json and source licence notices",
+  "qualityChecks": [
+    "GLB JSON and buffer data inspected for skinning, normalized nonzero weights, morph deltas and all four clips.",
+    "Headless Cycles renders inspected: full body, face, side, body extremes, all six face presets, all six hairstyles, equipment and movement poses.",
+    "The final shipped GLB was re-imported into a clean Blender scene and rendered at idle, strong build/muscle and raised-arm celebration."
+  ],
+  "sourceBlendBytes": 11814787,
+  "qaImageBytes": 14240011,
+  "qaImageCount": 14
+}

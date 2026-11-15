@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794446517092,
+      "tag": "0000_big_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794469097525,
+      "tag": "0001_mean_morlocks",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794566471371,
+      "tag": "0002_football_career",
+      "breakpoints": true
+    }
+  ]
+}

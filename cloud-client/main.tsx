@@ -1,0 +1,18 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import QuestApp from '../components/quest-app';
+import {enableLocalPlanner} from '../lib/planner-client';
+import '../app/globals.css';
+import '../app/game.css';
+import '../app/journal.css';
+import '../app/retro-career.css';
+import '../app/matchday-polish.css';
+import '../app/task-workspace.css';
+import '../app/football-career.css';
+import '../app/task-follow-up.css';
+import '../app/smart-board.css';
+import '../app/task-readability.css';
+import '../app/pro-career.css';
+import '../app/stadium-ui.css';
+enableLocalPlanner();
+createRoot(document.getElementById('root')!).render(<QuestApp/>);

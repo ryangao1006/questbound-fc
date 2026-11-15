@@ -1,0 +1,33 @@
+import {consistentRecovery,restoreRecovery} from "./career-recovery";
+import {env} from "cloudflare:workers";
+import {database,readState,commit,AppError} from "./store";
+import {getSecret,putSecret,secretOnce} from "./secrets";
+import {newKey,hash} from "./crypto";
+import {packSnapshot,unpackSnapshot,retentionIds} from "./archive";
+import {uploadOneDrive,graph} from "./providers";
+import {rebuildReminders} from "./domain";
+export type BackupRow={id:string;owner:string;created_at:string;revision:number;kind:string;checksum:string;size:number;verified:number;onedrive_id:string|null;onedrive_at:string|null;local_at:string|null;error:string|null};
+function bucket(){if(!env.BUCKET)throw new AppError("Backup storage is not connected yet.",503);return env.BUCKET;}
+export async function recoveryKey(owner:string,create=false){let secret=await getSecret<{key:string}>(owner,"recovery");if(!secret&&create){secret=await secretOnce(owner,"recovery",{key:newKey()});}if(!secret)throw new AppError("Set up your recovery key before creating backups.");return secret.key;}
+export async function backupList(owner:string){return (await database().prepare("SELECT id,created_at,revision,kind,checksum,size,verified,onedrive_at,local_at,error FROM qi_backups WHERE owner=? ORDER BY created_at DESC LIMIT 150").bind(owner).all()).results;}
+export async function createBackup(owner:string,kind="manual"){const current=await consistentRecovery(owner);const key=await recoveryKey(owner);const packed=await packSnapshot(current.state,current.revision,key,new Date(),current.career);await unpackSnapshot(packed.bytes,key);const id=packed.snapshot.id;const objectKey=`${owner}/${id}.qibak`;await bucket().put(objectKey,packed.bytes,{httpMetadata:{contentType:"application/octet-stream"}});const saved=await bucket().get(objectKey);if(!saved||await hash(new Uint8Array(await saved.arrayBuffer()))!==packed.checksum)throw new AppError("The backup could not be verified. Previous backups are unchanged.",503);await database().prepare("INSERT INTO qi_backups(id,owner,created_at,revision,kind,checksum,size,verified) VALUES(?,?,?,?,?,?,?,1)").bind(id,owner,packed.snapshot.createdAt,current.revision,kind,packed.checksum,packed.bytes.length).run();const oneDrive=await getSecret<{refresh_token?:string}>(owner,"onedrive");if(oneDrive?.refresh_token){try{const remote=await uploadOneDrive(owner,id,packed.bytes);await database().prepare("UPDATE qi_backups SET onedrive_id=?,onedrive_at=? WHERE id=? AND owner=?").bind(remote,new Date().toISOString(),id,owner).run();}catch(e){await database().prepare("UPDATE qi_backups SET error=? WHERE id=? AND owner=?").bind(e instanceof Error?e.message:"OneDrive backup pending",id,owner).run();}}await pruneBackups(owner);return {id,createdAt:packed.snapshot.createdAt,revision:current.revision,checksum:packed.checksum,size:packed.bytes.length};}
+export async function backupBytes(owner:string,id:string){const row=await database().prepare("SELECT * FROM qi_backups WHERE id=? AND owner=?").bind(id,owner).first<BackupRow>();if(!row||!row.verified)throw new AppError("Verified backup not found.",404);const object=await bucket().get(`${owner}/${id}.qibak`);if(!object)throw new AppError("Backup archive is unavailable.",404);const bytes=new Uint8Array(await object.arrayBuffer());if(await hash(bytes)!==row.checksum)throw new AppError("Backup integrity check failed.",409);return {row,bytes};}
+export async function stageRestore(owner:string,bytes:Uint8Array,key:string){const snapshot=await unpackSnapshot(bytes,key);const id=crypto.randomUUID();await bucket().put(`${owner}/restore-${id}.qibak`,bytes,{customMetadata:{expiresAt:String(Date.now()+3600000)}});await putSecret(owner,`restore:${id}`,{key,expiresAt:Date.now()+3600000});return {id,createdAt:snapshot.createdAt,revision:snapshot.revision,counts:snapshot.counts,schemaVersion:snapshot.schemaVersion,careerHistoryPreserved:true,economyHistoryPreserved:true};}
+export async function restoreBackup(owner:string,id:string,expectedRevision:number,opId:string){if(await database().prepare("SELECT id FROM qi_operations WHERE owner=? AND id=?").bind(owner,opId).first())return readState(owner);const secret=await getSecret<{key:string;expiresAt:number}>(owner,`restore:${id}`);if(!secret||secret.expiresAt<Date.now())throw new AppError("The restore preview has expired. Upload the archive again.");const object=await bucket().get(`${owner}/restore-${id}.qibak`);if(!object)throw new AppError("Restore archive not found.");const snapshot=await unpackSnapshot(new Uint8Array(await object.arrayBuffer()),secret.key);const current=await readState(owner);if(current.revision!==expectedRevision)throw new AppError("Your planner changed after this restore preview. Review it again.",409);await createBackup(owner,"pre-restore");const result=await restoreRecovery(owner,snapshot,expectedRevision,opId);await bucket().delete(`${owner}/restore-${id}.qibak`);return result;}
+export async function retryBackupUploads(owner:string){
+ if(!await getSecret(owner,"onedrive"))return;
+ const rows=(await database().prepare("SELECT * FROM qi_backups WHERE owner=? AND verified=1 AND onedrive_id IS NULL ORDER BY created_at DESC LIMIT 4").bind(owner).all<BackupRow>()).results;
+ for(const row of rows){try{const {bytes}=await backupBytes(owner,row.id);const id=await uploadOneDrive(owner,row.id,bytes);await database().prepare("UPDATE qi_backups SET onedrive_id=?,onedrive_at=?,error=NULL WHERE owner=? AND id=?").bind(id,new Date().toISOString(),owner,row.id).run();}catch(e){await database().prepare("UPDATE qi_backups SET error=? WHERE owner=? AND id=?").bind(e instanceof Error?e.message:"OneDrive retry pending",owner,row.id).run();break;}}
+}
+export async function pruneBackups(owner:string){
+ const rows=(await database().prepare("SELECT * FROM qi_backups WHERE owner=? AND verified=1 ORDER BY created_at DESC").bind(owner).all<BackupRow>()).results;const keep=retentionIds(rows);
+ for(const row of rows.filter(r=>!keep.has(r.id))){
+  if(row.onedrive_id){
+   // Only prune a remote copy after a newer remote recovery point passed read-back verification.
+   if(!rows.some(r=>keep.has(r.id)&&r.onedrive_at&&r.created_at>row.created_at))continue;
+   try{await graph(owner,`/me/drive/items/${encodeURIComponent(row.onedrive_id)}`,{method:"DELETE"});}catch{continue;}
+  }else if(row.error)continue;
+  await bucket().delete(`${owner}/${row.id}.qibak`);await database().prepare("DELETE FROM qi_backups WHERE id=? AND owner=?").bind(row.id,owner).run();
+ }
+ // Mac retention is based on its own verified history and never mirrors these deletions.
+}

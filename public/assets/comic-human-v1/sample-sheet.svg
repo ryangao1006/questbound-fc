@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img" aria-label="comic-human-v1 character sheet: close-up, running, kicking and phone views">
+  <rect width="960" height="360" fill="#0c1523"/>
+  <g fill="#8fa6c6" font-family="Arial, Helvetica, sans-serif">
+    <text x="32" y="44" font-size="20" letter-spacing="3">COMIC-HUMAN-V1</text>
+    <text x="32" y="66" font-size="11" letter-spacing="2">ORIGINAL ARTWORK · UNMODIFIED CC0 GEOMETRY · 4 CEL BANDS</text>
+  </g>
+  <line x1="32" y1="82" x2="928" y2="82" stroke="#243449" stroke-width="1"/>
+  <!-- close-up -->
+  <g transform="translate(48 100)">
+    <rect width="196" height="228" rx="12" fill="#101a2b"/>
+    <circle cx="98" cy="86" r="66" fill="#17263f"/>
+    <path d="M40 228c4-52 28-74 58-78 30 4 54 26 58 78Z" fill="#2f6f4e" stroke="#0d1520" stroke-width="3"/>
+    <path d="M86 132h24l3 30H83Z" fill="#c98d63" stroke="#0d1520" stroke-width="2.6"/>
+    <path d="M74 76c-2-24 12-34 26-34s28 10 26 34c-5-16-14-22-26-22s-21 5-26 22Z" fill="#231a16" stroke="#0d1520" stroke-width="2"/>
+    <path d="M70 84c0 22 13 34 29 34s29-12 29-34c0-20-13-30-29-30S70 64 70 84Z" fill="#d79a70" stroke="#0d1520" stroke-width="2.6"/>
+    <ellipse cx="88" cy="84" rx="9" ry="10" fill="#fdfdfd" stroke="#0d1520" stroke-width="2"/>
+    <ellipse cx="108" cy="84" rx="9" ry="10" fill="#fdfdfd" stroke="#0d1520" stroke-width="2"/>
+    <circle cx="89" cy="85" r="5" fill="#2a1c14"/><circle cx="109" cy="85" r="5" fill="#2a1c14"/>
+    <circle cx="87.6" cy="82.6" r="1.7" fill="#fff"/><circle cx="107.6" cy="82.6" r="1.7" fill="#fff"/>
+    <path d="M79 74c4-4 11-4 15 0M102 74c4-4 11-4 15 0" fill="none" stroke="#0d1520" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M93 100c-2 5-1 8 2 9M91 112c5 4 11 4 15-1" fill="none" stroke="#0d1520" stroke-width="2.4" stroke-linecap="round"/>
+    <text x="98" y="214" text-anchor="middle" font-family="Arial" font-size="11" fill="#8fa6c6">CLOSE-UP</text>
+  </g>
+  <!-- running -->
+  <g transform="translate(262 100)">
+    <rect width="196" height="228" rx="12" fill="#101a2b"/>
+    <ellipse cx="98" cy="212" rx="60" ry="9" fill="#0b1424"/>
+    <path d="M84 196l24 26 18-8" fill="none" stroke="#d79a70" stroke-width="15" stroke-linecap="round"/>
+    <path d="M84 196l-26 32-12 20" fill="none" stroke="#d79a70" stroke-width="15" stroke-linecap="round"/>
+    <path d="M82 152l4 44" stroke="#f2f2ee" stroke-width="18" stroke-linecap="round"/>
+    <path d="M66 118l-18 24" fill="none" stroke="#d79a70" stroke-width="12" stroke-linecap="round"/>
+    <path d="M96 116L118 96" fill="none" stroke="#d79a70" stroke-width="12" stroke-linecap="round"/>
+    <path d="M86 112c-18 0-28 12-28 30s12 32 28 32 28-14 28-32-10-30-28-30Z" fill="#2f6f4e" stroke="#0d1520" stroke-width="3"/>
+    <path d="M70 116c-4 14-4 40 2 56" stroke="#e8edf4" stroke-width="3" fill="none" opacity=".7"/>
+    <g transform="translate(86 86) scale(.62)">
+      <path d="M-30 0c0-22 13-32 30-32s30 10 30 32c0 20-13 32-30 32S-30 20-30 0Z" fill="#d79a70" stroke="#0d1520" stroke-width="3"/>
+      <path d="M-30-2c-3-24 12-36 30-36s33 12 30 36c-6-16-15-22-30-22s-24 6-30 22Z" fill="#231a16" stroke="#0d1520" stroke-width="2"/>
+    </g>
+    <text x="98" y="214" text-anchor="middle" font-family="Arial" font-size="11" fill="#8fa6c6">RUNNING</text>
+  </g>
+  <!-- kicking -->
+  <g transform="translate(476 100)">
+    <rect width="196" height="228" rx="12" fill="#101a2b"/>
+    <ellipse cx="94" cy="212" rx="62" ry="9" fill="#0b1424"/>
+    <circle cx="156" cy="192" r="12" fill="#f7f7f2" stroke="#0d1520" stroke-width="2.4"/>
+    <path d="M92 150l26 40 22-8" fill="none" stroke="#d79a70" stroke-width="15" stroke-linecap="round"/>
+    <path d="M92 150l-20 34-14 22" fill="none" stroke="#d79a70" stroke-width="15" stroke-linecap="round"/>
+    <path d="M88 106l6 46" stroke="#f2f2ee" stroke-width="18" stroke-linecap="round"/>
+    <path d="M104 86L134 108 150 96" fill="none" stroke="#d79a70" stroke-width="12" stroke-linecap="round"/>
+    <path d="M90 82c-18 0-28 12-28 30s12 30 28 30 28-12 28-30-10-30-28-30Z" fill="#2f6f4e" stroke="#0d1520" stroke-width="3"/>
+    <g transform="translate(90 56) scale(.62)">
+      <path d="M-30 0c0-22 13-32 30-32s30 10 30 32c0 20-13 32-30 32S-30 20-30 0Z" fill="#d79a70" stroke="#0d1520" stroke-width="3"/>
+      <path d="M-30-2c-3-24 12-36 30-36s33 12 30 36c-6-16-15-22-30-22s-24 6-30 22Z" fill="#231a16" stroke="#0d1520" stroke-width="2"/>
+    </g>
+    <text x="98" y="214" text-anchor="middle" font-family="Arial" font-size="11" fill="#8fa6c6">KICKING</text>
+  </g>
+  <!-- phone -->
+  <g transform="translate(690 100)">
+    <rect width="196" height="228" rx="12" fill="#101a2b"/>
+    <rect x="52" y="10" width="92" height="196" rx="14" fill="#060c16" stroke="#2b3d57" stroke-width="3"/>
+    <rect x="57" y="16" width="82" height="184" rx="10" fill="#132136"/>
+    <rect x="85" y="20" width="26" height="4" rx="2" fill="#2b3d57"/>
+    <g transform="translate(98 118) scale(.5)">
+      <path d="M-52 96c4-46 26-64 52-68 26 4 48 22 52 68Z" fill="#2f6f4e" stroke="#0d1520" stroke-width="4"/>
+      <path d="M-14 32h28l4 28h-36Z" fill="#c98d63" stroke="#0d1520" stroke-width="3"/>
+      <path d="M-30 4c0-24 14-34 30-34s30 10 30 34c0 22-14 34-30 34S-30 26-30 4Z" fill="#d79a70" stroke="#0d1520" stroke-width="3"/>
+      <path d="M-30 0c-3-26 12-38 30-38s33 12 30 38c-6-18-15-24-30-24S-24-18-30 0Z" fill="#231a16" stroke="#0d1520" stroke-width="2"/>
+    </g>
+    <text x="98" y="222" text-anchor="middle" font-family="Arial" font-size="11" fill="#8fa6c6">PHONE · 390 PX</text>
+  </g>
+  <text x="928" y="348" text-anchor="end" font-family="Arial" font-size="10" fill="#5d718c">CC0-1.0 PROJECT ARTWORK · IMMUTABLE AFTER PUBLICATION</text>
+</svg>

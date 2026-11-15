@@ -1,0 +1,76 @@
+{
+  "assetVersion": "comic-human-v1",
+  "version": 1,
+  "profile": 2,
+  "appearanceVersion": 2,
+  "geometrySource": "human-v2",
+  "geometryHashes": {
+    "player-match.glb": {
+      "bytes": 3251340,
+      "sha256": "99221e6b27038ebc553f117faaa375afedddb02bfe24b5d757fa8dd829bd0fcf"
+    },
+    "player.glb": {
+      "bytes": 13420940,
+      "sha256": "0890138840add6f0c767875cd828709590a8872212c84da24fce735ee7651e3f"
+    },
+    "player-mobile.glb": {
+      "bytes": 6129688,
+      "sha256": "8926c021d121743569963dea334bff1f92de76942d64195c0a1bb47821c386f3"
+    },
+    "LICENSES.json": {
+      "bytes": 3204,
+      "sha256": "10401af65f55fb4284c197746a7b705eb44f861a3dc27e066c7e5d0af25e55eb"
+    },
+    "manifest.json": {
+      "bytes": 26177,
+      "sha256": "c3607356ba073d596ba3311227cc06029e6c75bf9f722a00c4f7a571d022e70b"
+    }
+  },
+  "shading": {
+    "shader": "qfc-comic-v2",
+    "bands": 4,
+    "shadowTint": "#3d5a86",
+    "keyTint": "#fff0d2",
+    "preservesNormalAndRoughnessMaps": false
+  },
+  "surfaces": {
+    "presentation": {
+      "glb": "/assets/player-v2/player.glb",
+      "kitResolution": 1024,
+      "kitDetail": true,
+      "shadows": true,
+      "pose": "bust"
+    },
+    "dorm": {
+      "glb": "/assets/player-v2/player-mobile.glb",
+      "kitResolution": 512,
+      "kitDetail": true,
+      "shadows": false,
+      "pose": "run"
+    },
+    "match": {
+      "glb": "/assets/player-v2/player-match.glb",
+      "kitResolution": 512,
+      "kitDetail": false,
+      "shadows": false,
+      "pose": "kick"
+    },
+    "phone": {
+      "glb": "/assets/player-v2/player-mobile.glb",
+      "kitResolution": 512,
+      "kitDetail": true,
+      "shadows": false,
+      "pose": "phone"
+    }
+  },
+  "files": {
+    "sample-sheet.svg": {
+      "bytes": 5757,
+      "sha256": "2dc2558bbe3ef339e78ad95957e1a28ad87bc7b7b56933f970649ecef35c3f5b"
+    }
+  },
+  "license": "CC0-1.0",
+  "licenseFile": "LICENSES.json",
+  "provenance": "Project-original cel shading, kit detailing and character sheet over unmodified human-v2 geometry; no new sculpt, rig or clip in this version.",
+  "immutableAfterPublication": true
+}
