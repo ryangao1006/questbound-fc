@@ -586,3 +586,11 @@ Validation: typecheck, **549 tests**, migration checks, production build and sta
 ### Audit result
 
 A final axe-core pass over the overview, all three other tabs, the 3D base and the static demo (1440 and 390 px) reports **zero WCAG 2.1 A/AA violations**.
+
+## 3.84 — planner↔club feedback, conflict recovery, safe areas and a code-split evaluation
+
+Completing a task now shows its club payout in the existing save toast — a real completion measured 90 → 110 FC with “+10 经验值 · +20 FC” and a “查看俱乐部” link inside the same `role="status"` announcement; habit and focus completion compute their funds the same way from the returned economy. A club command that hits a 409 shows one banner (“数据已更新，重新加载并重试。”) whose button refetches state and retries the stored command once — verified with a mocked 409 on `club.assistant` (two requests total, success afterwards, no duplicate flash).
+
+The mobile layout now uses `viewport-fit=cover` (Next `viewport` export and the demo meta) so the safe-area insets added earlier actually resolve on iOS, with `:active` scale/brightness feedback on controls and zero targets below 40 px at 390 px. Code splitting of the club tabs was **evaluated and deliberately not implemented**: measured first-content times are 60 ms (overview), 84 ms (squad) and 180 ms (club tab incl. lazy roster), and the demo entry is ~640 KB minified (~200 KB gzip) with 3D and roster already lazy — the remaining split would add waterfall risk for little gain. Numbers are recorded here so the decision can be revisited if the bundle grows.
+
+Validation: typecheck, **549 tests**, migration checks, production build, static demo build; axe audit still reports **0 violations** across all club surfaces and the demo. Schema remains 8.

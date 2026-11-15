@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./game.css";
 import "./journal.css";
@@ -15,6 +15,13 @@ import "./career-comic.css";
 import "./readable-surfaces.css";
 import "./dorm-interactions.css";
 import "./fc-themes.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0b1523",
+};
 
 export const metadata: Metadata = {
   title: "Questbound FC — your football career planner",

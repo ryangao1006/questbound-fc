@@ -429,6 +429,10 @@ const COPY = {
 
   commandBusy: { en: "Saving…", zh: "保存中…" },
   commandFailed: { en: "Could not save: {0}", zh: "保存失败：{0}" },
+  conflictRecovery: { en: "Data was updated elsewhere. Reload and retry.", zh: "数据已更新，重新加载并重试。" },
+  conflictRetry: { en: "Reload & retry", zh: "重新加载并重试" },
+  conflictRetrying: { en: "Reloading & retrying…", zh: "正在重新加载并重试…" },
+  conflictRecovered: { en: "Reloaded and applied the change.", zh: "已重新加载并重试成功。" },
   revisionConflict: {
     en: "Your planner changed in another tab. The latest data was reloaded — please try again.",
     zh: "计划数据已在其他标签页更新，已重新载入最新数据，请再试一次。",
@@ -1536,7 +1540,7 @@ async function readEnvelope(signal?: AbortSignal): Promise<Envelope> {
 }
 
 /** Every club action goes through the real command endpoint; nothing is written to storage directly. */
-async function sendCommand(command: Record<string, unknown>, revision: number): Promise<Envelope> {
+async function postCommand(command: Record<string, unknown>, revision: number): Promise<Envelope> {
   const operationId = crypto.randomUUID();
   if (isStaticDemo()) {
     const { demoSend } = await import("@/lib/club-demo-store");
@@ -2706,6 +2710,8 @@ export default function ClubPreviewPage() {
   const [assistantAnnouncement, setAssistantAnnouncement] = useState("");
   const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
   const [liveFormationAnnouncement, setLiveFormationAnnouncement] = useState("");
+  const [conflictRetry, setConflictRetry] = useState<Record<string, unknown> | null>(null);
+  const lastCommandRef = useRef<Record<string, unknown> | null>(null);
   const [tacticSuggestAnnouncement, setTacticSuggestAnnouncement] = useState("");
   const [isDemo, setIsDemo] = useState(false);
   const [matchResultAnnouncement, setMatchResultAnnouncement] = useState("");
@@ -3359,6 +3365,36 @@ export default function ClubPreviewPage() {
     setSource("live");
     setFailure("");
   };
+  const sendTrackedCommand = useCallback((command: Record<string, unknown>, revision: number) => {
+    lastCommandRef.current = command;
+    return postCommand(command, revision);
+  }, []);
+  const retryConflict = async () => {
+    const command = conflictRetry;
+    if (!command || busy) return;
+    setBusy(true);
+    setPendingAction("conflict-retry");
+    setFeedback(null);
+    try {
+      const fresh = await readEnvelope();
+      applyEnvelope(fresh);
+      const next = await postCommand(command, fresh.revision);
+      applyEnvelope(next);
+      setConflictRetry(null);
+      setFeedback({ kind: "success", text: copy(language, "conflictRecovered") });
+    } catch (error) {
+      setConflictRetry(null);
+      if (error instanceof CommandError && error.status === 409) {
+        setConflictRetry(command);
+        setFeedback({ kind: "error", text: copy(language, "conflictRecovery") });
+      } else {
+        handleCommandError(error, "commandFailed");
+      }
+    } finally {
+      setBusy(false);
+      setPendingAction("");
+    }
+  };
   const reload = async (silent = false) => {
     setRefreshing(true);
     try {
@@ -3378,8 +3414,8 @@ export default function ClubPreviewPage() {
   };
   const handleCommandError = (error: unknown, fallbackKey: CopyKey) => {
     if (error instanceof CommandError && error.status === 409) {
-      setFeedback({ kind: "error", text: copy(language, "revisionConflict") });
-      void reload(true);
+      setConflictRetry(lastCommandRef.current);
+      setFeedback(null);
       return;
     }
     const rawMessage = error instanceof Error ? error.message : String(error);
@@ -3405,7 +3441,7 @@ export default function ClubPreviewPage() {
     setBusy(true);
     setFeedback(null);
     try {
-      const next = await sendCommand(
+      const next = await sendTrackedCommand(
         {
           type: "club.create",
           name: createForm.name.trim(),
@@ -3434,7 +3470,7 @@ export default function ClubPreviewPage() {
     setBusy(true);
     setFeedback(null);
     try {
-      const next = await sendCommand(
+      const next = await sendTrackedCommand(
         { type: "club.train", playerId: player.id, attribute: selectedAttribute },
         envelope.revision,
       );
@@ -3480,7 +3516,7 @@ export default function ClubPreviewPage() {
     setBusy(true);
     setDetailError("");
     try {
-      const next = await sendCommand({ type: "club.train", playerId: detailData.id, attribute }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.train", playerId: detailData.id, attribute }, envelope.revision);
       applyEnvelope(next);
       if (next.state.club) {
         const afterDetail = playerDetail(next.state.club, detailData.id, { x: 70, y: 70 }, 48);
@@ -3517,7 +3553,7 @@ export default function ClubPreviewPage() {
     setBusy(true);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.lineup", formation, starters }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.lineup", formation, starters }, envelope.revision);
       applyEnvelope(next);
       setFeedback({ kind: "success", text: copy(language, "lineupSuccess", formation) });
     } catch (error) {
@@ -3534,7 +3570,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`tactic:${tactic}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.tactic", tactic }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.tactic", tactic }, envelope.revision);
       applyEnvelope(next);
       const afterRatings = next.state.club ? clubRatings(next.state.club) : beforeRatings;
       const delta = ratingDeltaText(beforeRatings, afterRatings);
@@ -3560,7 +3596,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`tactic-train:${tactic}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.tactic.train", tactic }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.tactic.train", tactic }, envelope.revision);
       applyEnvelope(next);
       const nextClub = next.state.club;
       const afterRatings = nextClub ? clubRatings(nextClub) : beforeRatings;
@@ -3594,7 +3630,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`facility:${facility}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.facility", facility }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.facility", facility }, envelope.revision);
       applyEnvelope(next);
       const nextClub = next.state.club;
       const receipt = lastReceiptOfKind(nextClub, "facility");
@@ -3633,7 +3669,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`decor:${option.id}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.decor", [option.kind]: option.id }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.decor", [option.kind]: option.id }, envelope.revision);
       applyEnvelope(next);
       const label = language === "zh" ? option.nameZh : option.name;
       setDecorAnnouncement(copy(language, "decorApplied", label));
@@ -3652,7 +3688,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`assistant:${field}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.assistant", [field]: value }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.assistant", [field]: value }, envelope.revision);
       applyEnvelope(next);
       const label = field === "autoSquad" ? copy(language, "assistantAutoSquad") : copy(language, "assistantAutoSubs");
       const announcement = copy(language, value ? "assistantOn" : "assistantOff", label);
@@ -3820,7 +3856,7 @@ export default function ClubPreviewPage() {
     setPendingAction("match");
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.match", tier: matchTier }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.match", tier: matchTier }, envelope.revision);
       applyEnvelope(next);
       const nextClub = next.state.club;
       if (nextClub) {
@@ -3861,7 +3897,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`sign:${worldPlayerId}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.sign", worldPlayerId }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.sign", worldPlayerId }, envelope.revision);
       applyEnvelope(next);
       const receipt = lastReceiptOfKind(next.state.club, "signing");
       setFeedback({
@@ -3884,7 +3920,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`display:${kind}:${itemId}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.display", [kind]: itemId }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.display", [kind]: itemId }, envelope.revision);
       applyEnvelope(next);
       const option = displayPlan?.options.find((entry) => entry.kind === kind && entry.id === itemId) ?? null;
       const kitOption = kind === "kit" ? (displayPlan?.kits.find((entry) => entry.id === itemId) ?? null) : null;
@@ -3915,7 +3951,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`sell:${playerId}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.sell", playerId }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.sell", playerId }, envelope.revision);
       applyEnvelope(next);
       const receipt = lastReceiptOfKind(next.state.club, "sale");
       setPendingSellId(null);
@@ -3939,7 +3975,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`league-start:${tier}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.league.start", tier }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.league.start", tier }, envelope.revision);
       applyEnvelope(next);
       setLastRoundResults(null);
       setFeedback({
@@ -3966,7 +4002,7 @@ export default function ClubPreviewPage() {
     setPendingAction("league-play");
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.league.play" }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.league.play" }, envelope.revision);
       applyEnvelope(next);
       if (preview) setLastRoundResults({ round: preview.season.round, results: preview.results });
       const nextSeason = next.state.club?.season;
@@ -4000,7 +4036,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`cup-start:${tier}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.cup.start", tier }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.cup.start", tier }, envelope.revision);
       applyEnvelope(next);
       setFeedback({
         kind: "success",
@@ -4021,7 +4057,7 @@ export default function ClubPreviewPage() {
     setPendingAction("cup-play");
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.cup.play" }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.cup.play" }, envelope.revision);
       applyEnvelope(next);
       const nextCup = next.state.club?.cup;
       const nextClubName = next.state.club?.name ?? club.name;
@@ -4064,7 +4100,7 @@ export default function ClubPreviewPage() {
     setLiveFinished(null);
     setConfirmingAbandonLive(false);
     try {
-      const next = await sendCommand({ type: "club.live.start", tier }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.live.start", tier }, envelope.revision);
       applyEnvelope(next);
       setFeedback({
         kind: "success",
@@ -4084,7 +4120,7 @@ export default function ClubPreviewPage() {
     setPendingAction("live-advance");
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.live.advance" }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.live.advance" }, envelope.revision);
       applyEnvelope(next);
       const nextLive = next.state.club?.live;
       if (nextLive?.session) {
@@ -4153,7 +4189,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`live-tactic:${tactic}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.live.tactic", tactic }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.live.tactic", tactic }, envelope.revision);
       applyEnvelope(next);
       setFeedback({
         kind: "success",
@@ -4174,7 +4210,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`live-formation:${formation}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.live.formation", formation }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.live.formation", formation }, envelope.revision);
       applyEnvelope(next);
       const announcement = copy(language, "liveFormationChanged", formation);
       setLiveFormationAnnouncement(announcement);
@@ -4193,7 +4229,7 @@ export default function ClubPreviewPage() {
     setPendingAction(`suggested-tactic:${tactic}`);
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.tactic", tactic }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.tactic", tactic }, envelope.revision);
       applyEnvelope(next);
       const announcement = copy(language, "tacticSuggestApplied", copy(language, TACTIC_NAME_KEY[tactic]));
       setTacticSuggestAnnouncement(announcement);
@@ -4212,7 +4248,7 @@ export default function ClubPreviewPage() {
     setPendingAction("live-abandon");
     setFeedback(null);
     try {
-      const next = await sendCommand({ type: "club.live.abandon" }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.live.abandon" }, envelope.revision);
       applyEnvelope(next);
       setConfirmingAbandonLive(false);
       setLiveFinished(null);
@@ -4234,7 +4270,7 @@ export default function ClubPreviewPage() {
     setPendingAction("live-sub");
     setFeedback(null);
     try {
-      const next = await sendCommand(
+      const next = await sendTrackedCommand(
         { type: "club.live.sub", outId: outgoing.id, inId: incoming.id },
         envelope.revision,
       );
@@ -4309,7 +4345,7 @@ export default function ClubPreviewPage() {
     setBusy(true);
     setFeedback(null);
     try {
-      const next = await sendCommand(
+      const next = await sendTrackedCommand(
         { type: "club.celebrate", trophyId: celebration.trophyId },
         envelope.revision,
       );
@@ -4336,7 +4372,7 @@ export default function ClubPreviewPage() {
     setFeedback(null);
     setMigrateAnnouncement("");
     try {
-      const next = await sendCommand({ type: "club.migrate", confirm: true }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.migrate", confirm: true }, envelope.revision);
       applyEnvelope(next);
       const fundsAfter = clubFunds(next.state.economy);
       const timestamp = next.state.club?.migratedAt;
@@ -7087,6 +7123,15 @@ export default function ClubPreviewPage() {
         >
           {feedback?.text}
         </div>
+
+        {conflictRetry ? (
+          <div className="club-conflict-banner" role="alert" data-conflict-retry>
+            <span>{copy(language, "conflictRecovery")}</span>
+            <button type="button" className="club-button club-button-primary" onClick={() => void retryConflict()} disabled={busy}>
+              {pendingAction === "conflict-retry" ? copy(language, "conflictRetrying") : copy(language, "conflictRetry")}
+            </button>
+          </div>
+        ) : null}
 
         {mode === "sample" || mode === "loading" ? (
           <nav className="club-tabbar" role="tablist" aria-label={copy(language, "tabAria")}>

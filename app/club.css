@@ -10283,3 +10283,86 @@ html[data-theme="classic-career"] .club-page .club-card.has-backdrop {
     min-height: 40px;
   }
 }
+
+/* iOS safe areas for the compact club tabs + touch feedback. */
+.club-page {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
+.club-compact-bar {
+  padding-top: calc(8px + env(safe-area-inset-top));
+  padding-left: max(4px, env(safe-area-inset-left));
+  padding-right: max(4px, env(safe-area-inset-right));
+}
+
+.club-compact-tabs {
+  scroll-padding-left: env(safe-area-inset-left);
+  scroll-padding-right: env(safe-area-inset-right);
+}
+
+.club-page :is(button, a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.club-page :is(button, a):active {
+  filter: brightness(0.9);
+  transform: scale(0.98);
+}
+
+@media (max-width: 700px) {
+  .club-page {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .club-compact-bar {
+    padding-top: calc(7px + env(safe-area-inset-top));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .club-page :is(button, a):active {
+    transform: none;
+  }
+}
+
+/* Planner-to-club feedback link inside the existing save toast. */
+.football-overlays .toast .toast-club-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.football-overlays .toast .toast-club-link:active {
+  background: var(--accent-soft);
+}
+
+/* Club command conflict recovery banner. */
+.club-conflict-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid #ffd479;
+  border-radius: 8px;
+  background: color-mix(in srgb, #ffd479 12%, var(--surface, #0e2845));
+  color: #ffd479;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.club-conflict-banner .club-button {
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 10px;
+}

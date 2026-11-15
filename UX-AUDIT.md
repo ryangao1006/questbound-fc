@@ -27,11 +27,11 @@ Scope: the hosted planner shell, `/club` (four tabs), `/club/base` (3D base + ro
 |---|---|---|
 | Demo | ✅ **Done**: “Top up +5,000” and “Reset demo” live in the demo bar; an offline service worker precaches the shell and hashed assets (offline reload verified after one online visit). | The service worker is demo-only; the main app has its own offline layer. |
 | Error UX | Cover the remaining command errors (migration, save/conflict) and translate 409s into “reload and retry” actions | Full coverage makes failures self-explanatory. |
-| Planner ↔ club | Show club fund/XP deltas in the task-completion toast and link straight to `/club` | Makes the game loop visible from the planner side. |
+| Planner ↔ club | ✅ **Done**: task/habit/focus toasts show the computed club payout (+20 FC etc.) and a “查看俱乐部” link inside the existing live region. | — |
 | Accessibility | ✅ **Done**: axe-core 4.14 audit over the four tabs, 3D base and demo, desktop + 390 px — three issues found and fixed, **0 violations** on re-run. Remaining: add a skip link and verify live-region ordering under rapid commands. | The audit is manual (not in CI) so regressions could creep back in. |
 | Mobile | Real-device pass (touch, safe-area insets, 30 FPS target) and sticky primary action on mobile | The harness can only emulate 390 px. |
 | Offline | ✅ **Done** for the demo (`demo/public/sw.js`). | Only the shell and hashed assets are cached; large 3D chunks cache on first use. |
-| Performance | Code-split club tabs (training/transfers/competitions) and preload the roster on intent (hover/tap) | Initial club JS is still ~650 KB in the demo. |
+| Performance | Code-splitting club tabs was **evaluated and deferred**: measured tab-switch first content is 60–180 ms and the demo entry is ~640 KB minified (~200 KB gzip) with roster/3D already lazy; a split would add request waterfalls. Revisit if the bundle grows. | — |
 
 ## How this was verified
 
