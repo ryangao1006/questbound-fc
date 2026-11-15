@@ -4,7 +4,6 @@ import ClubPreview from '@/components/club-preview';
 import ClubBase from '@/components/club-base';
 import '@/app/club.css';
 import './demo.css';
-import {resetDemo} from '@/lib/club-demo-store';
 
 declare global{interface Window{__QFC_DEMO__?:boolean}}
 window.__QFC_DEMO__=true;
@@ -19,7 +18,7 @@ function Demo(){
    <nav>
     <a href="#top" onClick={()=>setPage('club')}>Club</a>
     <a href="#base" onClick={()=>setPage('base')}>Base</a>
-    <button type="button" onClick={()=>{resetDemo();location.hash='';location.reload()}}>Reset demo</button>
+    <button type="button" onClick={async()=>{const {resetDemo}=await import('@/lib/club-demo-store');resetDemo();location.hash='';location.reload()}}>Reset demo</button>
    </nav>
   </div>
   <div id="top">{page==='base'?<ClubBase/>:<ClubPreview/>}</div>

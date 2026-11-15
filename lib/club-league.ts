@@ -1,4 +1,6 @@
-import {opponentFor,simulateClubMatch,teamFromClub,type ClubMatchReport,type ClubTeam} from './club-match.ts';
+import {opponentFor,teamFromClub,type ClubTeam} from './club-match.ts';
+import {simulateClubMatchV2} from './match-v2.ts';
+import type {MatchV2Report} from './match-v2.ts';
 import type {ClubState} from './club-state.ts';
 
 /**
@@ -60,18 +62,18 @@ function applyResult(table:LeagueRow[],home:string,away:string,homeGoals:number,
 }
 export function sortTable(table:LeagueRow[]){return [...table].sort((a,b)=>b.points-a.points||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||a.teamId.localeCompare(b.teamId))}
 
-export function playSeasonRound(club:ClubState,season:ClubSeason):{season:ClubSeason;report?:ClubMatchReport;results:{home:string;away:string;score:[number,number]}[]}{
+export function playSeasonRound(club:ClubState,season:ClubSeason):{season:ClubSeason;report?:MatchV2Report;results:{home:string;away:string;score:[number,number]}[]}{
  if(season.finished)throw new Error('This season is already finished.');
  const nextRound=season.round+1;
  const fixtures=season.fixtures.filter(fixture=>fixture.round===nextRound);
  if(!fixtures.length)throw new Error('This season has no further fixtures.');
- const own=teamFromClub(club),results:{home:string;away:string;score:[number,number]}[]=[];let report:ClubMatchReport|undefined;
+ const own=teamFromClub(club),results:{home:string;away:string;score:[number,number]}[]=[];let report:MatchV2Report|undefined;
  const table=season.table.map(row=>({...row}));
  for(const fixture of fixtures){
   const homeTeam=season.teams.find(team=>team.id===fixture.home)!,awayTeam=season.teams.find(team=>team.id===fixture.away)!;
   const home=fixture.home==='club'?own:{...homeTeam,scorers:{ATT:[`${homeTeam.name} forward`],MID:[`${homeTeam.name} midfielder`],DEF:[`${homeTeam.name} defender`]}};
   const away=fixture.away==='club'?own:{...awayTeam,scorers:{ATT:[`${awayTeam.name} forward`],MID:[`${awayTeam.name} midfielder`],DEF:[`${awayTeam.name} defender`]}};
-  const sim=simulateClubMatch(home,away,hash(`${season.seed}:${season.id}:${nextRound}:${fixture.home}:${fixture.away}`));
+  const sim=simulateClubMatchV2(home,away,hash(`${season.seed}:${season.id}:${nextRound}:${fixture.home}:${fixture.away}`));
   if(fixture.home==='club'||fixture.away==='club')report=sim;
   applyResult(table,fixture.home,fixture.away,sim.score[0],sim.score[1]);
   results.push({home:fixture.home,away:fixture.away,score:sim.score});

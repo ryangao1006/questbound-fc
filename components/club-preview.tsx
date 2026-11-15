@@ -6,6 +6,7 @@ import {
   Suspense,
   lazy,
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -54,7 +55,7 @@ import {
   type ClubSeason,
   type LeagueTier,
 } from "@/lib/club-league";
-import { cupOutcomeLabel, cupTeam, type ClubCup, type CupMatch, type CupTier } from "@/lib/club-cup";
+import type { ClubCup, CupMatch, CupTier } from "@/lib/club-cup";
 import { opponentFor, simulateClubMatch, teamFromClub } from "@/lib/club-match";
 import {
   CLUB_TACTICS,
@@ -76,7 +77,14 @@ import {
   type SeasonRecord,
   type FacilityKey,
 } from "@/lib/club-state";
-import { FOOTBALL_CLUBS, FOOTBALL_PLAYERS, type FootballAttributes, type FootballRosterPlayer } from "@/lib/football-data";
+import type { FootballAttributes, FootballClub, FootballRosterPlayer } from "@/lib/football-data";
+import {
+  PLAN_EXAMPLE_DAY,
+  balanceSummary,
+  dailyIncome,
+  weeklyGoalProgress,
+  weeklyPlan,
+} from "@/lib/club-balance";
 import {
   clubDisplay,
   type DisplayKind,
@@ -558,6 +566,9 @@ const COPY = {
   scoutClearFilters: { en: "Clear filters", zh: "清除筛选" },
   scoutFilterSummary: { en: "{0} · {1} players · {2} recommendations", zh: "{0} · {1} 名球员 · {2} 条推荐" },
   scoutRecommendEmpty: { en: "No recommendations match these filters.", zh: "没有符合筛选条件的推荐。" },
+  scoutLoading: { en: "Loading the 2,062-player scouting roster…", zh: "正在加载 2,062 名球员的球探名单…" },
+  scoutLoadFailed: { en: "Could not load the scouting roster: {0}", zh: "无法加载球探名单：{0}" },
+  scoutRetry: { en: "Retry", zh: "重试" },
   scoutSortLabel: { en: "Sort", zh: "排序" },
   scoutSortOvr: { en: "OVR high to low", zh: "OVR 从高到低" },
   scoutSortPriceAsc: { en: "Price low to high", zh: "价格从低到高" },
@@ -868,6 +879,25 @@ const COPY = {
   onboardingProgress: { en: "Onboarding step {0} of 3", zh: "新手引导第 {0} / 3 步" },
   onboardingSkipped: { en: "Guide skipped. Use ? to replay it anytime.", zh: "已跳过引导。可随时用 ? 重看。" },
   onboardingDismissed: { en: "Guide finished. Use ? to replay it anytime.", zh: "引导已完成。可随时用 ? 重看。" },
+  balanceTitle: { en: "Income & goals", zh: "收入与目标" },
+  balancePace: { en: "PLAN example pace: 4 tasks + 40 focus minutes per day — not live stats.", zh: "按 PLAN 示例节奏估算：每天 4 个任务 + 40 分钟专注——非实时统计。" },
+  balanceDailyTitle: { en: "Daily income", zh: "每日收入" },
+  balanceWeeklyTitle: { en: "Weekly income", zh: "每周收入" },
+  balanceXp: { en: "XP", zh: "经验" },
+  balanceFunds: { en: "Funds", zh: "资金" },
+  balanceDaysTitle: { en: "Days to save", zh: "攒够所需天数" },
+  balanceDays1000: { en: "1,000 funds", zh: "1,000 资金" },
+  balanceDaysSigning: { en: "65-OVR signing", zh: "65 OVR 签约" },
+  balanceDays: { en: "{0} days", zh: "{0} 天" },
+  balanceGoalsTitle: { en: "Weekly goal affordability", zh: "每周目标可负担性" },
+  balanceGoalTraining: { en: "Training point", zh: "培养点" },
+  balanceGoalTactic: { en: "Tactic level 1", zh: "战术 Lv 1" },
+  balanceGoalFacility: { en: "Facility upgrade", zh: "设施升级" },
+  balanceGoalSigning: { en: "65-OVR signing", zh: "65 OVR 签约" },
+  balanceGoalStadium: { en: "Stadium L2", zh: "球场 L2" },
+  balanceAffordable: { en: "within a week", zh: "一周内" },
+  balanceNotAffordable: { en: "{0} weeks", zh: "{0} 周" },
+  balanceUnlimited: { en: "n/a", zh: "—" },
   exportTitle: { en: "Export club summary", zh: "导出俱乐部摘要" },
   exportIntro: { en: "Download a JSON and Markdown summary to your device. Nothing is uploaded.", zh: "将 JSON 与 Markdown 摘要下载到本地，不会上传任何数据。" },
   exportButton: { en: "Export summary", zh: "导出摘要" },
@@ -1283,16 +1313,12 @@ function matchScoreline(record: ClubMatchRecord): string {
   return `${record.opponent.name} · ${record.score[0]} – ${record.score[1]}`;
 }
 
-/** Read-only scouting index: every real roster player with its current OVR and quote. */
-const WORLD_SCOUT_TARGETS: { world: FootballRosterPlayer; ovr: number; price: number }[] = [];
-for (const world of FOOTBALL_PLAYERS) {
-  try {
-    const ovr = worldPlayerOvr(world);
-    WORLD_SCOUT_TARGETS.push({ world, ovr, price: signingPrice(ovr) });
-  } catch {
-    // Skip identities without enough attribute data to quote.
-  }
-}
+/** Loaded only when the transfer/scouting area is first opened; the full roster is large. */
+type ScoutDataset = {
+  clubs: readonly FootballClub[];
+  players: readonly FootballRosterPlayer[];
+  targets: { world: FootballRosterPlayer; ovr: number; price: number }[];
+};
 
 /** 50 % refund of the recorded signing price; gifted initial players are worthless. */
 function playerSaleValue(player: ClubPlayer): number {
@@ -1313,7 +1339,7 @@ function leagueFixtureText(
 function cupNameOf(cup: ClubCup | null | undefined, clubName: string | undefined, teamId: string): string {
   if (teamId === "club") return clubName ?? teamId;
   if (!cup) return teamId;
-  return cupTeam(cup, teamId)?.name ?? teamId;
+  return cup?.teams.find((team) => team.id === teamId)?.name ?? teamId;
 }
 
 const DISPLAY_KIND_COPY: Record<DisplayKind, CopyKey> = {
@@ -2566,6 +2592,16 @@ function ProgressRing({ done, total, label }: { done: number; total: number; lab
   );
 }
 
+function BalanceMeter({ label, value, max, display, unit }: { label: string; value: number; max: number; display: string; unit: string }) {
+  return (
+    <div className="club-balance-meter" role="img" aria-label={`${label}: ${display} ${unit}`}>
+      <span className="club-balance-meter-label">{label}</span>
+      <span className="club-balance-meter-track"><i style={{ width: `${Math.max(2, Math.min(100, (value / Math.max(1, max)) * 100))}%` }} /></span>
+      <b>{display}<small>{unit}</small></b>
+    </div>
+  );
+}
+
 function ConditionBar({ fitness, injury, compact = false, language }: {
   fitness: number;
   injury: number;
@@ -2682,6 +2718,10 @@ export default function ClubPreviewPage() {
   } | null>(null);
   const liveEventsRef = useRef<HTMLDivElement | null>(null);
   const [scoutingFilters, setScoutingFilters] = useState<ScoutingFilters>({});
+  const [scoutDataset, setScoutDataset] = useState<ScoutDataset | null>(null);
+  const [scoutLoadState, setScoutLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [scoutLoadError, setScoutLoadError] = useState("");
+  const scoutLoadStartedRef = useRef(false);
   const [squadView, setSquadView] = useState<"cards" | "list">("list");
   const [scoutSort, setScoutSort] = useState<ScoutSort>("priceAsc");
   const [scoutWithinCapOnly, setScoutWithinCapOnly] = useState(true);
@@ -3084,14 +3124,45 @@ export default function ClubPreviewPage() {
           : null;
 
   const scoutingCap = club ? scoutCap(club.facilities.scoutCentre) : 0;
-  const scoutingChoices = useMemo(() => scoutingFilterOptions(FOOTBALL_CLUBS), []);
+  const loadScoutDataset = useCallback(async (force = false) => {
+    if (!force && scoutLoadStartedRef.current) return;
+    scoutLoadStartedRef.current = true;
+    setScoutLoadState("loading");
+    setScoutLoadError("");
+    try {
+      const data = await import("@/lib/football-data");
+      const targets: ScoutDataset["targets"] = [];
+      for (const world of data.FOOTBALL_PLAYERS) {
+        try {
+          const ovr = worldPlayerOvr(world);
+          targets.push({ world, ovr, price: signingPrice(ovr) });
+        } catch {
+          // Skip identities without enough attribute data to quote.
+        }
+      }
+      setScoutDataset({ clubs: data.FOOTBALL_CLUBS, players: data.FOOTBALL_PLAYERS, targets });
+      setScoutLoadState("ready");
+    } catch (error) {
+      scoutLoadStartedRef.current = false;
+      setScoutLoadState("error");
+      setScoutLoadError(error instanceof Error ? error.message : String(error));
+    }
+  }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the roster is loaded only when the Club tab (transfers/scouting) opens.
+    if (mode === "club" && clubTab === "club") void loadScoutDataset();
+  }, [mode, clubTab, loadScoutDataset]);
+  const scoutingChoices = useMemo(
+    () => (scoutDataset ? scoutingFilterOptions(scoutDataset.clubs) : { leagues: [], regions: [] }),
+    [scoutDataset],
+  );
   const scoutingPositions = useMemo(
-    () => [...new Set(FOOTBALL_PLAYERS.map((player) => player.position))].sort(),
-    [],
+    () => [...new Set((scoutDataset?.players ?? []).map((player) => player.position))].sort(),
+    [scoutDataset],
   );
   const scoutingFilteredPlayers = useMemo(
-    () => filterRoster(FOOTBALL_PLAYERS, FOOTBALL_CLUBS, scoutingFilters),
-    [scoutingFilters],
+    () => (scoutDataset ? filterRoster(scoutDataset.players, scoutDataset.clubs, scoutingFilters) : []),
+    [scoutDataset, scoutingFilters],
   );
   const scoutingFilteredIds = useMemo(
     () => new Set(scoutingFilteredPlayers.map((player) => player.id)),
@@ -3113,8 +3184,8 @@ export default function ClubPreviewPage() {
   const scoutingChoiceLabel = (field: "league" | "region" | "position", id: string) =>
     field === "league" ? scoutingLeagueLabel(id) : id;
   const scoutRows = useMemo(() => {
-    if (!club) return [];
-    const filtered = WORLD_SCOUT_TARGETS.filter((entry) => {
+    if (!club || !scoutDataset) return [];
+    const filtered = scoutDataset.targets.filter((entry) => {
       if (scoutWithinCapOnly && entry.ovr > scoutingCap) return false;
       if (!scoutingFilteredIds.has(entry.world.id)) return false;
       return true;
@@ -3124,19 +3195,19 @@ export default function ClubPreviewPage() {
     else if (scoutSort === "priceAsc") sorted.sort((a, b) => a.price - b.price || b.ovr - a.ovr);
     else sorted.sort((a, b) => b.price - a.price || b.ovr - a.ovr);
     return sorted;
-  }, [club, scoutingFilteredIds, scoutSort, scoutWithinCapOnly, scoutingCap]);
+  }, [club, scoutDataset, scoutingFilteredIds, scoutSort, scoutWithinCapOnly, scoutingCap]);
   const visibleScoutRows = scoutRows.slice(0, 24);
   const squadIsFull = (club?.players.length ?? 0) >= 25;
   const scouting = useMemo(
     () =>
-      club
-        ? computeScoutingPlan(club, FOOTBALL_PLAYERS, funds, {
+      club && scoutDataset
+        ? computeScoutingPlan(club, scoutDataset.players, funds, {
             limit: 5,
-            clubs: FOOTBALL_CLUBS,
+            clubs: scoutDataset.clubs,
             filters: scoutingFilters,
           })
         : null,
-    [club, funds, scoutingFilters],
+    [club, funds, scoutDataset, scoutingFilters],
   );
   const scoutingWeakestNeed = scouting?.needs.find((need) => need.line === scouting.weakest) ?? null;
   const scoutingHasAffordable = Boolean(scouting?.recommendations.some((entry) => entry.price <= scouting.budget));
@@ -3198,7 +3269,7 @@ export default function ClubPreviewPage() {
     const pending = cup.matches.filter((match) => match.score === undefined);
     return pending.length ? (pending[0].round as 1 | 2) : null;
   }, [cup]);
-  const cupOutcome = cup ? cupOutcomeLabel(cup) : null;
+  const cupOutcome = cup?.finished ? (cup.winner === "club" ? "won" : "lost") : null;
   const cupWinnerName = cup?.winner ? cupNameOf(cup, club?.name, cup.winner) : null;
   const cupNextOwnMatch = useMemo(() => {
     if (!cup || !cupNextRound) return null;
@@ -4852,7 +4923,7 @@ export default function ClubPreviewPage() {
   ) : null;
 
   const transfersSection = mode === "club" && club ? (
-    <section className="club-section" id="club-transfers" aria-labelledby="club-transfers-heading">
+    <section className="club-section" id="club-transfers" aria-labelledby="club-transfers-heading" data-scout-state={scoutLoadState}>
       <div className="club-section-head">
         <div>
           <p className="club-eyebrow">{`${copy(language, "scoutTitle")} · ${copy(language, "scoutCapInfo", club.facilities.scoutCentre, scoutingCap)}`}</p>
@@ -4861,6 +4932,24 @@ export default function ClubPreviewPage() {
         <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "transfersIntro")}</p></details>
       </div>
 
+      {scoutLoadState !== "ready" ? (
+        <div className="club-panel club-scout-loading" role="status" aria-live="polite">
+          {scoutLoadState === "error" ? (
+            <>
+              <b>{copy(language, "scoutLoadFailed", scoutLoadError)}</b>
+              <button type="button" className="club-button club-button-secondary" onClick={() => void loadScoutDataset(true)}>
+                {copy(language, "scoutRetry")}
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="club-watch3d-spinner" aria-hidden="true" />
+              <b>{copy(language, "scoutLoading")}</b>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
       <div className="club-scout-filterbar" role="group" aria-label={copy(language, "scoutFiltersTitle")}>
         {([
           ["league", "scoutLeague", scoutingChoices.leagues],
@@ -5146,6 +5235,8 @@ export default function ClubPreviewPage() {
           </p>
         )}
       </div>
+        </>
+      )}
     </section>
   ) : null;
 
@@ -6537,6 +6628,83 @@ export default function ClubPreviewPage() {
     </section>
   ) : null;
 
+  const balance = useMemo(() => {
+    const daily = dailyIncome(PLAN_EXAMPLE_DAY);
+    const weekly = weeklyPlan();
+    const goals = weeklyGoalProgress(weekly.weeklyFunds);
+    const summary = balanceSummary();
+    return { daily, weekly, goals, summary };
+  }, []);
+  const balanceGoalLabels: Record<string, CopyKey> = {
+    trainingPoint: "balanceGoalTraining",
+    tacticLevel1: "balanceGoalTactic",
+    facilityUpgrade: "balanceGoalFacility",
+    signing65Ovr: "balanceGoalSigning",
+    stadiumL2: "balanceGoalStadium",
+  };
+  const balanceSection = mode === "club" && club ? (
+    <section className="club-section club-balance-section" id="club-balance" aria-labelledby="club-balance-heading">
+      <div className="club-section-head">
+        <div>
+          <p className="club-eyebrow">{copy(language, "balanceTitle")}</p>
+          <h2 id="club-balance-heading">{copy(language, "balanceTitle")}</h2>
+        </div>
+        <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "balancePace")}</p></details>
+      </div>
+      <div
+        className="club-panel club-balance-panel"
+        data-balance-daily-xp={balance.daily.xp}
+        data-balance-daily-funds={balance.daily.totalFunds}
+        data-balance-weekly-funds={balance.summary.weeklyFunds}
+        data-balance-weekly-xp={balance.weekly.weeklyXp}
+        data-balance-days-1000={balance.summary.daysTo1000}
+        data-balance-days-signing={balance.summary.daysToSigning}
+      >
+        <p className="club-balance-pace" role="note">{copy(language, "balancePace")}</p>
+        <div className="club-balance-grid">
+          <section className="club-balance-group" aria-labelledby="club-balance-daily-heading">
+            <h3 id="club-balance-daily-heading">{copy(language, "balanceDailyTitle")}</h3>
+            <div className="club-balance-meters">
+              <BalanceMeter label={copy(language, "balanceXp")} value={balance.daily.xp} max={Math.max(balance.daily.xp, balance.daily.totalFunds)} display={`${balance.daily.xp}`} unit="XP" />
+              <BalanceMeter label={copy(language, "balanceFunds")} value={balance.daily.totalFunds} max={Math.max(balance.daily.xp, balance.daily.totalFunds)} display={`${balance.daily.totalFunds}`} unit="FC" />
+            </div>
+          </section>
+          <section className="club-balance-group" aria-labelledby="club-balance-weekly-heading">
+            <h3 id="club-balance-weekly-heading">{copy(language, "balanceWeeklyTitle")}</h3>
+            <div className="club-balance-meters">
+              <BalanceMeter label={copy(language, "balanceFunds")} value={balance.weekly.weeklyFunds} max={balance.weekly.weeklyFunds} display={`${balance.weekly.weeklyFunds}`} unit="FC" />
+              <BalanceMeter label={copy(language, "balanceXp")} value={balance.weekly.weeklyXp} max={balance.weekly.weeklyFunds} display={`${balance.weekly.weeklyXp}`} unit="XP" />
+            </div>
+          </section>
+          <section className="club-balance-group club-balance-days" aria-labelledby="club-balance-days-heading">
+            <h3 id="club-balance-days-heading">{copy(language, "balanceDaysTitle")}</h3>
+            <div className="club-balance-stat-row">
+              <div className="club-balance-stat"><b>{balance.summary.daysTo1000}</b><span>{copy(language, "balanceDays1000")}</span></div>
+              <div className="club-balance-stat"><b>{balance.summary.daysToSigning}</b><span>{copy(language, "balanceDaysSigning")}</span></div>
+            </div>
+          </section>
+        </div>
+        <section className="club-balance-goals" aria-labelledby="club-balance-goals-heading">
+          <h3 id="club-balance-goals-heading">{copy(language, "balanceGoalsTitle")}</h3>
+          <div className="club-balance-goal-list">
+            {balance.goals.map((goal) => (
+              <div className="club-balance-goal" key={goal.goal} data-balance-goal={goal.goal} data-balance-cost={goal.cost} data-balance-weeks={goal.weeks} data-balance-affordable={goal.affordable}>
+                <span className="club-balance-goal-label">{copy(language, balanceGoalLabels[goal.goal] ?? "balanceGoalsTitle")}</span>
+                <span className="club-balance-goal-bar" role="img" aria-label={`${copy(language, balanceGoalLabels[goal.goal] ?? "balanceGoalsTitle")} ${goal.cost} FC · ${goal.weeks} weeks`}>
+                  <i style={{ width: `${Math.min(100, (goal.cost / Math.max(1, balance.weekly.weeklyFunds)) * 100)}%` }} className={goal.affordable ? "is-affordable" : "is-short"} />
+                </span>
+                <b>{`${goal.cost} FC`}</b>
+                <span className={`club-balance-weeks${goal.affordable ? " is-ok" : ""}`}>
+                  {goal.affordable ? copy(language, "balanceAffordable") : copy(language, "balanceNotAffordable", goal.weeks)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </section>
+  ) : null;
+
   const exportSection = mode === "club" && club ? (
     <section className="club-section club-export-section" id="club-export" aria-labelledby="club-export-heading">
       <div className="club-section-head">
@@ -7227,6 +7395,7 @@ export default function ClubPreviewPage() {
           ) : null}
           {clubTab === "club" ? (
             <>
+              {balanceSection}
               {exportSection}
               {decorSection}
               {transfersSection}

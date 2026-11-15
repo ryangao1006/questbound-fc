@@ -1,5 +1,7 @@
 import {PREMIER_LEAGUE_CLUBS} from './football-data.ts';
-import {simulateClubMatch,teamFromClub,type ClubMatchReport,type ClubTeam} from './club-match.ts';
+import {teamFromClub,type ClubTeam} from './club-match.ts';
+import type {MatchV2Report} from './match-v2.ts';
+import {simulateClubMatchV2} from './match-v2.ts';
 import type {ClubState} from './club-state.ts';
 
 /**
@@ -37,13 +39,13 @@ export function createCup(club:ClubState,tier:CupTier,seed:number,cupId:string):
  }
  return {id:cupId,tier,seed,teams,matches:[{round:1,home:'club',away:teams[1].id},{round:1,home:teams[2].id,away:teams[3].id}],round:0,finished:false};
 }
-function seededReport(seasonSeed:string,home:ClubTeam,away:ClubTeam){return simulateClubMatch(home,away,hash(seasonSeed))}
-export function playCupRound(club:ClubState,cup:ClubCup):{cup:ClubCup;report?:ClubMatchReport;results:{home:string;away:string;score:[number,number]}[]}{
+function seededReport(seasonSeed:string,home:ClubTeam,away:ClubTeam){return simulateClubMatchV2(home,away,hash(seasonSeed))}
+export function playCupRound(club:ClubState,cup:ClubCup):{cup:ClubCup;report?:MatchV2Report;results:{home:string;away:string;score:[number,number]}[]}{
  if(cup.finished)throw new Error('This cup is already finished.');
  const own=teamFromClub(club);
  const build=(team:CupTeam):ClubTeam=>({name:team.name,shortName:team.shortName,lines:team.lines,tactic:team.tactic,scorers:{ATT:[`${team.name} forward`],MID:[`${team.name} midfielder`],DEF:[`${team.name} defender`]}});
  const side=(id:string)=>id==='club'?own:build(cup.teams.find(team=>team.id===id)!);
- const results:{home:string;away:string;score:[number,number]}[]=[];let report:ClubMatchReport|undefined;
+ const results:{home:string;away:string;score:[number,number]}[]=[];let report:MatchV2Report|undefined;
  const matches=cup.matches.map(match=>({...match}));
  const pending=matches.filter(match=>match.score===undefined);
  const round=(pending[0]?.round??1) as 1|2;

@@ -10007,3 +10007,222 @@ html[data-theme="classic-career"] .club-page .club-card.has-backdrop {
     width: 100%;
   }
 }
+
+/* Income & goals balance panel. */
+.club-balance-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.club-balance-pace {
+  margin: 0;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.club-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.club-balance-group {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--line, #466681);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface, #0e2845) 70%, transparent);
+}
+
+.club-balance-group h3 {
+  margin: 0;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.club-balance-meters {
+  display: grid;
+  gap: 5px;
+}
+
+.club-balance-meter {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+}
+
+.club-balance-meter-label {
+  font-weight: 800;
+}
+
+.club-balance-meter-track {
+  display: block;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line, #466681) 35%, transparent);
+}
+
+.club-balance-meter-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent, #c8f56e), #7cc4ff);
+}
+
+.club-balance-meter b {
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.club-balance-meter b small {
+  margin-left: 2px;
+  color: var(--muted, #a9bed2);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.club-balance-stat-row {
+  display: flex;
+  gap: 8px;
+}
+
+.club-balance-stat {
+  display: grid;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.club-balance-stat b {
+  color: var(--accent, #c8f56e);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.club-balance-stat span {
+  color: var(--muted, #a9bed2);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.club-balance-goals {
+  display: grid;
+  gap: 5px;
+}
+
+.club-balance-goals h3 {
+  margin: 0;
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.club-balance-goal-list {
+  display: grid;
+  gap: 4px;
+}
+
+.club-balance-goal {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 58px 65px;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted, #a9bed2);
+  font-size: 8.5px;
+}
+
+.club-balance-goal-label {
+  overflow: hidden;
+  color: var(--text, #f5f8ff);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.club-balance-goal-bar {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line, #466681) 35%, transparent);
+}
+
+.club-balance-goal-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #ffd479;
+}
+
+.club-balance-goal-bar i.is-affordable {
+  background: #c8f56e;
+}
+
+.club-balance-goal b {
+  color: var(--text, #f5f8ff);
+  font-size: 9px;
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.club-balance-weeks {
+  color: #ffd479;
+  font-size: 8px;
+  font-weight: 800;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.club-balance-weeks.is-ok {
+  color: #c8f56e;
+}
+
+/* Dynamic scouting roster loading state. */
+.club-scout-loading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 120px;
+  color: var(--muted, #a9bed2);
+  font-size: 10px;
+}
+
+.club-scout-loading b {
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  .club-balance-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .club-balance-goal {
+    grid-template-columns: 78px minmax(0, 1fr) 54px;
+    gap: 4px;
+  }
+
+  .club-balance-weeks {
+    grid-column: 2 / -1;
+    text-align: left;
+  }
+}
