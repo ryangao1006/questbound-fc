@@ -9578,3 +9578,159 @@ html[data-theme="classic-career"] .club-page .club-card.has-backdrop {
 .club-overview-condition-legend .is-tired i {
   background: #f59e42;
 }
+
+/* Live formation switch. */
+.club-live-formation-announcement {
+  min-height: 13px;
+  margin: 2px 0 0;
+  color: var(--accent, #c8f56e);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.club-live-formation {
+  min-width: 130px;
+}
+
+/* Penalty shootout detail in the cup bracket. */
+.club-cup-pens {
+  display: grid;
+  gap: 3px;
+  padding: 4px 7px;
+  border: 1px solid var(--line, #466681);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface, #0e2845) 60%, transparent);
+  color: var(--muted, #bbcee0);
+  white-space: nowrap;
+}
+
+.club-cup-pens-score {
+  color: var(--text, #f5f8ff);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.club-cup-pens-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.club-cup-pens-side {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.club-cup-pens-side i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border: 1px solid color-mix(in srgb, var(--line, #466681) 80%, #fff 20%);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.club-cup-pens-side i.is-scored {
+  border-color: var(--accent, #c8f56e);
+  background: var(--accent, #c8f56e);
+}
+
+.club-cup-pens-side-away i.is-scored {
+  border-color: #7cc4ff;
+  background: #7cc4ff;
+}
+
+.club-cup-pens-divider {
+  color: var(--muted, #bbcee0);
+  font-size: 8px;
+  line-height: 1;
+}
+
+/* Recommended tactic block inside 开始新比赛. */
+.club-tactic-suggest {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 9px 10px;
+  border: 1px solid var(--accent, #c8f56e);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent, #c8f56e) 7%, var(--surface, #0e2845));
+}
+
+.club-tactic-suggest.is-fallback {
+  border-color: #ffd479;
+}
+
+.club-tactic-suggest-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.club-tactic-suggest-head b {
+  color: var(--accent, #c8f56e);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.club-tactic-suggest-head span {
+  color: var(--muted, #a9bed2);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.club-tactic-suggest-reason {
+  margin: 0;
+  color: var(--text, #f5f8ff);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.club-tactic-suggest-reason b {
+  color: var(--accent, #c8f56e);
+}
+
+.club-tactic-suggest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.club-tactic-suggest-actions .club-button {
+  min-height: 32px;
+  font-size: 10px;
+}
+
+.club-tactic-suggest-announcement {
+  min-height: 12px;
+  color: var(--accent, #c8f56e);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .club-live-formation {
+    min-width: 0;
+  }
+
+  .club-cup-pens {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px 8px;
+  }
+
+  .club-tactic-suggest {
+    margin: 7px 0;
+  }
+
+  .club-tactic-suggest-actions .club-button {
+    width: 100%;
+  }
+}

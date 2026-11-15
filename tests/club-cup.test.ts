@@ -60,3 +60,20 @@ test('winning the cup adds exactly one trophy and losing adds none',()=>{
  if(cup.winner==='club')assert.equal(trophies.filter(trophy=>trophy.kind==='cup').length,1);
  else assert.equal(trophies.filter(trophy=>trophy.kind==='cup').length,0);
 });
+
+test('a drawn cup final records a penalty shootout and a winner',()=>{
+ const state=stateOf();
+ let found:ReturnType<typeof playCupRound>|null=null;
+ for(let seed=1;seed<=40&&!found;seed+=1){
+  const cup=createCup(state.club!,0,seed,'cup-pens-'+seed);
+  const semis=playCupRound(state.club!,cup);
+  const final=playCupRound(state.club!,semis.cup);
+  if(final.cup.finished){const match=final.cup.matches.find(entry=>entry.round===2)!;if(match.pens)found=final}
+ }
+ assert(found,'a drawn final with penalties exists within 40 seeds');
+ const match=found!.cup.matches.find(entry=>entry.round===2)!;
+ assert(match.pens);assert.notEqual(match.pens![0],match.pens![1]);
+ const winner=match.pens![0]>match.pens![1]?match.home:match.away;
+ assert.equal(found!.cup.winner,winner);
+ assert(found!.cup.matches.every(entry=>entry.pens===undefined||entry.round===2));
+});

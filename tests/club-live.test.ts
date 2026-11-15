@@ -46,3 +46,19 @@ test('a live match pays nothing and cannot double-write a result on replay',()=>
  assert.throws(()=>reduceCommand(state,{type:'club.live.advance',id:'adv-again'} as never),/Start a live match/);
  assert.equal(state.club!.matches!.length,1);
 });
+
+test('a live match survives a JSON round-trip and finishes on the same result',()=>{
+ let half=play();
+ for(let block=0;block<9;block+=1)half=reduceCommand(half,{type:'club.live.advance',id:`half-${block}`} as never);
+ const snapshot=JSON.parse(JSON.stringify(half)) as typeof half;
+ let straight=half;
+ for(let block=9;block<18;block+=1)straight=reduceCommand(straight,{type:'club.live.advance',id:`straight-${block}`} as never);
+ let resumed=snapshot;
+ for(let block=9;block<18;block+=1)resumed=reduceCommand(resumed,{type:'club.live.advance',id:`resumed-${block}`} as never);
+ const a=straight.club!.matches![0],b=resumed.club!.matches![0];
+ assert.deepEqual(b.score,a.score);
+ assert.deepEqual(b.timeline,a.timeline);
+ assert.equal(b.seed,a.seed);
+ assert.deepEqual(b.lineups,a.lineups);
+});
+

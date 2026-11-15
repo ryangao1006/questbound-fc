@@ -67,6 +67,7 @@ import {
   facilityGate,
   facilityUpgradeCost,
   tacticTrainingCost,
+  seedFrom,
   type ClubMatchRecord,
   type ClubReceipt,
   type ClubState,
@@ -75,7 +76,7 @@ import {
   type SeasonRecord,
   type FacilityKey,
 } from "@/lib/club-state";
-import { FOOTBALL_PLAYERS, type FootballAttributes, type FootballRosterPlayer } from "@/lib/football-data";
+import { FOOTBALL_CLUBS, FOOTBALL_PLAYERS, type FootballAttributes, type FootballRosterPlayer } from "@/lib/football-data";
 import {
   clubDisplay,
   type DisplayKind,
@@ -134,6 +135,12 @@ import {
   ratingsRadar,
   trophyPips,
 } from "@/lib/club-diagrams";
+import {
+  describeFilters,
+  filterRoster,
+  scoutingFilterOptions,
+  type ScoutingFilters,
+} from "@/lib/club-scouting-filters";
 import {
   scoutingPlan as computeScoutingPlan,
   type ClubLine as ScoutingClubLine,
@@ -542,6 +549,13 @@ const COPY = {
   scoutTitle: { en: "Scout list", zh: "球探名单" },
   scoutPositionFilter: { en: "Position", zh: "位置" },
   scoutPositionAll: { en: "All", zh: "全部" },
+  scoutFiltersTitle: { en: "Scouting filters", zh: "球探筛选" },
+  scoutLeague: { en: "League", zh: "联赛" },
+  scoutRegion: { en: "Region", zh: "地区" },
+  scoutFilterAll: { en: "All", zh: "全部" },
+  scoutClearFilters: { en: "Clear filters", zh: "清除筛选" },
+  scoutFilterSummary: { en: "{0} · {1} players · {2} recommendations", zh: "{0} · {1} 名球员 · {2} 条推荐" },
+  scoutRecommendEmpty: { en: "No recommendations match these filters.", zh: "没有符合筛选条件的推荐。" },
   scoutSortLabel: { en: "Sort", zh: "排序" },
   scoutSortOvr: { en: "OVR high to low", zh: "OVR 从高到低" },
   scoutSortPriceAsc: { en: "Price low to high", zh: "价格从低到高" },
@@ -675,6 +689,8 @@ const COPY = {
   cupFinalTbd: { en: "The final pairing appears after the semi-finals.", zh: "决赛对阵将在半决赛结束后产生。" },
   cupVs: { en: "vs", zh: "vs" },
   cupPenalties: { en: "Penalties", zh: "点球大战" },
+  cupPensScore: { en: "Penalties {0}–{1}", zh: "点球 {0}–{1}" },
+  cupPensAria: { en: "Penalty shootout, home {0}, away {1}", zh: "点球大战：主队 {0}，客队 {1}" },
   cupYourOpponent: { en: "Your opponent: {0} ({1})", zh: "你的对手：{0}（{1}）" },
   cupEliminatedWaiting: {
     en: "Your club is out; the final is still to be played.",
@@ -906,6 +922,9 @@ const COPY = {
   liveEvents: { en: "Live events", zh: "实时事件" },
   liveNoEvents: { en: "No events yet.", zh: "还没有事件。" },
   liveTacticChanged: { en: "Tactic changed: {0} (applies to later blocks)", zh: "战术已切换：{0}（影响后续小节）" },
+  liveCurrentFormation: { en: "Current formation", zh: "当前阵型" },
+  liveFormationChanged: { en: "Formation changed: {0} (applies to later blocks)", zh: "阵型已切换：{0}（影响后续小节）" },
+  liveFormationLabel: { en: "Live formation", zh: "临场阵型" },
   liveQuickSimNote: {
     en: "The quick simulation that does not change the result still lives in the result card above.",
     zh: "不改变结果的快速模拟仍在比赛结果卡中。",
@@ -923,6 +942,11 @@ const COPY = {
   briefingSuggested: { en: "Suggested tactic", zh: "推荐战术" },
   briefingApply: { en: "Apply suggested tactic", zh: "应用推荐战术" },
   briefingApplying: { en: "Applying…", zh: "应用中…" },
+  tacticSuggestTitle: { en: "Recommended tactic", zh: "推荐战术" },
+  tacticSuggestOpponent: { en: "vs {0}", zh: "对手：{0}" },
+  tacticSuggestApply: { en: "Apply recommended tactic", zh: "应用推荐战术" },
+  tacticSuggestApplied: { en: "Recommended tactic applied: {0}", zh: "已应用推荐战术：{0}" },
+  tacticSuggestFallback: { en: "No opponent preview available — balanced is the safe default.", zh: "拿不到对手预览——默认使用均衡战术最稳妥。" },
   briefingAlready: { en: "Already using the suggested tactic", zh: "已使用推荐战术" },
   briefingEdgeOurs: { en: "Our edge", zh: "我方占优" },
   briefingEdgeTheirs: { en: "Their edge", zh: "对手占优" },
@@ -1254,7 +1278,6 @@ function playerSaleValue(player: ClubPlayer): number {
   return typeof paid === "number" && paid > 0 ? sellValue(paid) : 0;
 }
 
-type ScoutPositionFilter = "ALL" | "GK" | "DEF" | "MID" | "ATT";
 type ScoutSort = "ovr" | "priceAsc" | "priceDesc";
 
 function leagueFixtureText(
@@ -2584,6 +2607,8 @@ export default function ClubPreviewPage() {
   const [latestReplayOpen, setLatestReplayOpen] = useState(false);
   const [assistantAnnouncement, setAssistantAnnouncement] = useState("");
   const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
+  const [liveFormationAnnouncement, setLiveFormationAnnouncement] = useState("");
+  const [tacticSuggestAnnouncement, setTacticSuggestAnnouncement] = useState("");
   const conditionBeforeRef = useRef<{ average: number; injured: Set<string> } | null>(null);
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   const [celebrationMode, setCelebrationMode] = useState<"pending" | "review">("pending");
@@ -2614,7 +2639,7 @@ export default function ClubPreviewPage() {
     matchId: string;
   } | null>(null);
   const liveEventsRef = useRef<HTMLDivElement | null>(null);
-  const [scoutPosition, setScoutPosition] = useState<ScoutPositionFilter>("ALL");
+  const [scoutingFilters, setScoutingFilters] = useState<ScoutingFilters>({});
   const [squadView, setSquadView] = useState<"cards" | "list">("list");
   const [scoutSort, setScoutSort] = useState<ScoutSort>("priceAsc");
   const [scoutWithinCapOnly, setScoutWithinCapOnly] = useState(true);
@@ -2923,6 +2948,28 @@ export default function ClubPreviewPage() {
   const liveMatchState = club?.live ?? null;
   const liveSession = liveMatchState?.session ?? null;
   const liveBriefing = club && liveSession ? matchBriefing(club, liveSession.away) : null;
+  const tacticSuggestion = useMemo(() => {
+    if (!club) return null;
+    try {
+      const opponent = opponentFor(matchTier, seedFrom(`${club.id}:${matchTier}:${club.matches?.length ?? 0}`));
+      const briefing = matchBriefing(club, opponent);
+      return {
+        tactic: briefing.suggestedTactic,
+        reason: briefing.tacticReason,
+        opponentName: opponent.name,
+        opponentTactic: opponent.tactic,
+        fallback: false,
+      };
+    } catch {
+      return {
+        tactic: "balanced" as ClubTactic,
+        reason: "",
+        opponentName: null,
+        opponentTactic: null,
+        fallback: true,
+      };
+    }
+  }, [club, matchTier]);
   const liveLatestEvent =
     liveSession && liveSession.events.length ? liveSession.events[liveSession.events.length - 1] : null;
   const liveAnnouncement = liveFinished
@@ -2984,11 +3031,28 @@ export default function ClubPreviewPage() {
           : null;
 
   const scoutingCap = club ? scoutCap(club.facilities.scoutCentre) : 0;
+  const scoutingChoices = useMemo(() => scoutingFilterOptions(FOOTBALL_CLUBS), []);
+  const scoutingPositions = useMemo(
+    () => [...new Set(FOOTBALL_PLAYERS.map((player) => player.position))].sort(),
+    [],
+  );
+  const scoutingFilteredPlayers = useMemo(
+    () => filterRoster(FOOTBALL_PLAYERS, FOOTBALL_CLUBS, scoutingFilters),
+    [scoutingFilters],
+  );
+  const scoutingFilteredIds = useMemo(
+    () => new Set(scoutingFilteredPlayers.map((player) => player.id)),
+    [scoutingFilteredPlayers],
+  );
+  const scoutingFiltersActive = Boolean(scoutingFilters.league || scoutingFilters.region || scoutingFilters.position);
+  const toggleScoutingFilter = (field: keyof ScoutingFilters, value: string) =>
+    setScoutingFilters((current) => ({ ...current, [field]: current[field] === value ? undefined : value }));
+  const clearScoutingFilters = () => setScoutingFilters({});
   const scoutRows = useMemo(() => {
     if (!club) return [];
     const filtered = WORLD_SCOUT_TARGETS.filter((entry) => {
       if (scoutWithinCapOnly && entry.ovr > scoutingCap) return false;
-      if (scoutPosition !== "ALL" && lineOf(entry.world.position) !== scoutPosition) return false;
+      if (!scoutingFilteredIds.has(entry.world.id)) return false;
       return true;
     });
     const sorted = [...filtered];
@@ -2996,12 +3060,19 @@ export default function ClubPreviewPage() {
     else if (scoutSort === "priceAsc") sorted.sort((a, b) => a.price - b.price || b.ovr - a.ovr);
     else sorted.sort((a, b) => b.price - a.price || b.ovr - a.ovr);
     return sorted;
-  }, [club, scoutPosition, scoutSort, scoutWithinCapOnly, scoutingCap]);
+  }, [club, scoutingFilteredIds, scoutSort, scoutWithinCapOnly, scoutingCap]);
   const visibleScoutRows = scoutRows.slice(0, 24);
   const squadIsFull = (club?.players.length ?? 0) >= 25;
   const scouting = useMemo(
-    () => (club ? computeScoutingPlan(club, FOOTBALL_PLAYERS, funds, { limit: 5 }) : null),
-    [club, funds],
+    () =>
+      club
+        ? computeScoutingPlan(club, FOOTBALL_PLAYERS, funds, {
+            limit: 5,
+            clubs: FOOTBALL_CLUBS,
+            filters: scoutingFilters,
+          })
+        : null,
+    [club, funds, scoutingFilters],
   );
   const scoutingWeakestNeed = scouting?.needs.find((need) => need.line === scouting.weakest) ?? null;
   const scoutingHasAffordable = Boolean(scouting?.recommendations.some((entry) => entry.price <= scouting.budget));
@@ -3775,6 +3846,45 @@ export default function ClubPreviewPage() {
     }
   };
 
+  const handleLiveFormation = async (formation: ClubFormation) => {
+    if (busy || !club || !envelope || !liveSession) return;
+    if ((liveSession.home.formation ?? club.formation) === formation) return;
+    setBusy(true);
+    setPendingAction(`live-formation:${formation}`);
+    setFeedback(null);
+    try {
+      const next = await sendCommand({ type: "club.live.formation", formation }, envelope.revision);
+      applyEnvelope(next);
+      const announcement = copy(language, "liveFormationChanged", formation);
+      setLiveFormationAnnouncement(announcement);
+      setFeedback({ kind: "success", text: announcement });
+    } catch (error) {
+      handleCommandError(error, "commandFailed");
+    } finally {
+      setBusy(false);
+      setPendingAction("");
+    }
+  };
+
+  const handleApplySuggestedTactic = async (tactic: ClubTactic) => {
+    if (busy || !club || !envelope || club.tactics.active === tactic) return;
+    setBusy(true);
+    setPendingAction(`suggested-tactic:${tactic}`);
+    setFeedback(null);
+    try {
+      const next = await sendCommand({ type: "club.tactic", tactic }, envelope.revision);
+      applyEnvelope(next);
+      const announcement = copy(language, "tacticSuggestApplied", copy(language, TACTIC_NAME_KEY[tactic]));
+      setTacticSuggestAnnouncement(announcement);
+      setFeedback({ kind: "success", text: announcement });
+    } catch (error) {
+      handleCommandError(error, "commandFailed");
+    } finally {
+      setBusy(false);
+      setPendingAction("");
+    }
+  };
+
   const handleAbandonLive = async () => {
     if (busy || !club || !envelope || !liveSession) return;
     setBusy(true);
@@ -3979,7 +4089,32 @@ export default function ClubPreviewPage() {
         <span className={`club-cup-team club-cup-team-away${awayWin ? " is-winner" : ""}`}>
           {cupNameOf(cup, club?.name, match.away)}
         </span>
-        {tied ? <span className="club-cup-pens">{copy(language, "cupPenalties")}</span> : null}
+        {match.pens ? (
+          <div
+            className="club-cup-pens"
+            data-cup-pens={`${match.pens[0]}-${match.pens[1]}`}
+            aria-label={copy(language, "cupPensAria", match.pens[0], match.pens[1])}
+          >
+            <span className="club-cup-pens-score">
+              {copy(language, "cupPensScore", match.pens[0], match.pens[1])}
+            </span>
+            <span className="club-cup-pens-dots" aria-hidden="true">
+              <span className="club-cup-pens-side">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <i key={`home-${index}`} className={index < Math.min(5, match.pens![0]) ? "is-scored" : undefined} />
+                ))}
+              </span>
+              <span className="club-cup-pens-divider">–</span>
+              <span className="club-cup-pens-side club-cup-pens-side-away">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <i key={`away-${index}`} className={index < Math.min(5, match.pens![1]) ? "is-scored" : undefined} />
+                ))}
+              </span>
+            </span>
+          </div>
+        ) : tied ? (
+          <span className="club-cup-pens">{copy(language, "cupPenalties")}</span>
+        ) : null}
       </li>
     );
   };
@@ -4527,6 +4662,55 @@ export default function ClubPreviewPage() {
         <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "transfersIntro")}</p></details>
       </div>
 
+      <div className="club-scout-filterbar" role="group" aria-label={copy(language, "scoutFiltersTitle")}>
+        {([
+          ["league", "scoutLeague", scoutingChoices.leagues],
+          ["region", "scoutRegion", scoutingChoices.regions],
+          ["position", "scoutPositionFilter", scoutingPositions.map((position) => ({ id: position, label: position }))],
+        ] as const).map(([field, labelKey, options]) => (
+          <div className="club-scout-filter-row" key={field}>
+            <span className="club-scout-filter-label">{copy(language, labelKey)}</span>
+            <div className="club-scout-filter-chips">
+              <button
+                type="button"
+                className={`club-scout-chip${!scoutingFilters[field] ? " is-selected" : ""}`}
+                aria-pressed={!scoutingFilters[field]}
+                onClick={() => setScoutingFilters((current) => ({ ...current, [field]: undefined }))}
+              >
+                {copy(language, "scoutFilterAll")}
+              </button>
+              {options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`club-scout-chip${scoutingFilters[field] === option.id ? " is-selected" : ""}`}
+                  aria-pressed={scoutingFilters[field] === option.id}
+                  onClick={() => toggleScoutingFilter(field, option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div className="club-scout-filter-meta">
+          <span aria-live="polite">
+            {copy(
+              language,
+              "scoutFilterSummary",
+              describeFilters(scoutingFilters),
+              scoutingFilteredPlayers.length,
+              scouting?.recommendations.length ?? 0,
+            )}
+          </span>
+          {scoutingFiltersActive ? (
+            <button type="button" className="club-button club-button-secondary club-scout-clear" onClick={clearScoutingFilters}>
+              {copy(language, "scoutClearFilters")}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       {scouting ? (
       <div className="club-panel club-scouting-panel" aria-live="polite">
         <div className="club-scouting-head">
@@ -4626,7 +4810,14 @@ export default function ClubPreviewPage() {
               })}
             </ul>
           ) : (
-            <p className="club-note">{copy(language, "scoutingNoTargets")}</p>
+            <p className="club-note" role="status">
+              {copy(language, scoutingFiltersActive ? "scoutRecommendEmpty" : "scoutingNoTargets")}
+              {scoutingFiltersActive ? (
+                <button type="button" className="club-link-button" onClick={clearScoutingFilters}>
+                  {copy(language, "scoutClearFilters")}
+                </button>
+              ) : null}
+            </p>
           )}
           {!scoutingHasAffordable ? (
             <p className="club-note club-scouting-honest">{copy(language, "scoutingNoAffordable")}</p>
@@ -4643,30 +4834,6 @@ export default function ClubPreviewPage() {
 
       <div className="club-panel club-transfer-panel">
         <div className="club-scout-toolbar">
-          <fieldset className="club-scout-positions" disabled={busy}>
-            <legend>{copy(language, "scoutPositionFilter")}</legend>
-            <div className="club-scout-position-buttons">
-              {(["ALL", "GK", "DEF", "MID", "ATT"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  className={`club-scout-filter${scoutPosition === filter ? " is-selected" : ""}`}
-                  aria-pressed={scoutPosition === filter}
-                  onClick={() => setScoutPosition(filter)}
-                >
-                  {filter === "ALL"
-                    ? copy(language, "scoutPositionAll")
-                    : filter === "GK"
-                      ? copy(language, "goalkeeper")
-                      : filter === "DEF"
-                        ? copy(language, "defence")
-                        : filter === "MID"
-                          ? copy(language, "midfield")
-                          : copy(language, "attack")}
-                </button>
-              ))}
-            </div>
-          </fieldset>
           <label className="club-field club-field-inline club-scout-sort">
             <span>{copy(language, "scoutSortLabel")}</span>
             <select
@@ -4762,7 +4929,14 @@ export default function ClubPreviewPage() {
             </table>
           </div>
         ) : (
-          <p className="club-note">{copy(language, "scoutEmpty")}</p>
+          <p className="club-note" role="status">
+            {copy(language, "scoutEmpty")}
+            {scoutingFiltersActive ? (
+              <button type="button" className="club-link-button" onClick={clearScoutingFilters}>
+                {copy(language, "scoutClearFilters")}
+              </button>
+            ) : null}
+          </p>
         )}
       </div>
     </section>
@@ -5474,6 +5648,46 @@ export default function ClubPreviewPage() {
         </div>
         <details className="club-new-match" id="club-new-match-controls">
           <summary>{copy(language, "newMatch")}</summary>
+          {tacticSuggestion ? (
+            <div
+              className={`club-tactic-suggest${tacticSuggestion.fallback ? " is-fallback" : ""}`}
+              data-tactic-suggest
+              data-tactic-suggested={tacticSuggestion.tactic}
+              data-tactic-active={club?.tactics.active ?? ""}
+            >
+              <div className="club-tactic-suggest-head">
+                <b>{copy(language, "tacticSuggestTitle")}</b>
+                <span>
+                  {tacticSuggestion.opponentName
+                    ? copy(language, "tacticSuggestOpponent", tacticSuggestion.opponentName)
+                    : copy(language, "tacticSuggestFallback")}
+                </span>
+              </div>
+              <p className="club-tactic-suggest-reason">
+                <b>{copy(language, TACTIC_NAME_KEY[tacticSuggestion.tactic])}</b>
+                {tacticSuggestion.fallback
+                  ? ""
+                  : ` — ${briefingText(language, tacticSuggestion.reason, BRIEFING_REASON_ZH)}`}
+              </p>
+              <div className="club-tactic-suggest-actions">
+                <button
+                  type="button"
+                  className="club-button club-button-primary"
+                  onClick={() => void handleApplySuggestedTactic(tacticSuggestion.tactic)}
+                  disabled={busy || club?.tactics.active === tacticSuggestion.tactic}
+                >
+                  {pendingAction === `suggested-tactic:${tacticSuggestion.tactic}`
+                    ? copy(language, "briefingApplying")
+                    : club?.tactics.active === tacticSuggestion.tactic
+                      ? copy(language, "briefingAlready")
+                      : copy(language, "tacticSuggestApply")}
+                </button>
+                <span className="club-tactic-suggest-announcement" role="status" aria-live="polite">
+                  {tacticSuggestAnnouncement}
+                </span>
+              </div>
+            </div>
+          ) : null}
         <fieldset className="club-match-controls" disabled={busy}>
           <legend>{copy(language, "matchTierLabel")}</legend>
           <div className="club-match-tiers">
@@ -5808,6 +6022,9 @@ export default function ClubPreviewPage() {
                 <span className="club-muted">
                   {`${copy(language, "liveCurrentTactic")}: ${copy(language, TACTIC_NAME_KEY[liveSession.home.tactic])}`}
                 </span>
+                <span className="club-muted" data-live-formation>
+                  {`${copy(language, "liveCurrentFormation")}: ${liveSession.home.formation ?? club.formation}`}
+                </span>
               </div>
               <div className="club-live-progress" aria-hidden="true">
                 <i style={{ width: `${Math.round((liveSession.block / 18) * 100)}%` }} />
@@ -5839,6 +6056,21 @@ export default function ClubPreviewPage() {
                     {CLUB_TACTICS.map((tactic) => (
                       <option key={tactic} value={tactic}>
                         {copy(language, TACTIC_NAME_KEY[tactic])}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="club-field club-field-inline club-live-formation">
+                  <span>{copy(language, "liveCurrentFormation")}</span>
+                  <select
+                    value={(liveSession.home.formation ?? club.formation) as ClubFormation}
+                    onChange={(event) => void handleLiveFormation(event.target.value as ClubFormation)}
+                    disabled={busy}
+                    data-live-formation-select
+                  >
+                    {(Object.keys(CLUB_FORMATIONS) as ClubFormation[]).map((formation) => (
+                      <option key={formation} value={formation}>
+                        {formation}
                       </option>
                     ))}
                   </select>
@@ -5875,6 +6107,9 @@ export default function ClubPreviewPage() {
                   </button>
                 )}
               </div>
+              <p className="club-live-formation-announcement" role="status" aria-live="polite">
+                {liveFormationAnnouncement}
+              </p>
               <div className="club-live-subs">
                 <div className="club-live-subs-head">
                   <h4 className="club-subheading">{copy(language, "liveSubsTitle")}</h4>

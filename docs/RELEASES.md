@@ -513,3 +513,29 @@ Validation: typecheck, **538 tests** — eight new cases covering fitness drain/
 The squad now shows condition everywhere: card fitness bars with colour bands and an “伤停 N 场” badge, compact **体能** and **状态** columns in the list view, a condition strip in the player detail with training disabled for injured players (“该球员伤停中，恢复后才能培养。”), and the same guard on the training page. The Match tab gained a folded **助教** panel with two real `club.assistant` toggles (auto squad and auto substitutions, both on by default) plus a note that the assistant only replaces unavailable starters, a pre-match note (“助教会自动调整 N 名首发”) and a post-match condition summary (starting-XI average fitness before → after and any new injuries). The overview carries a compact condition diagram (available / injured / tired) with the XI average instead of prose. Old saves without condition fields read as fully fit.
 
 Verified with a real quick match (Northbridge 6–2 Vale Athletic, revision 2239): the summary showed **starting XI average fitness 76 → 71** with **no new injuries**, and an earlier real simulation really injured **Rui Dax for 3 matches** (fitness 8), which the cards and summary display. Toggling auto-substitutions off wrote `club.assistant = {autoSubs:false}` and announced it. A clearly-labelled mock state with two injured starters verified the badges, the disabled training reasons, the pre-match “3 名首发” note and the overview diagram (16 available / 2 injured / 1 tired, XI 64). 390 px has no overflow and there were no page errors; typecheck, 538 tests, migration checks, `npm run prebuild`, the production build and the static demo build all pass.
+
+## 3.76 — in-match formation changes and penalty shootouts
+
+Two PLAN gaps closed in the match layer. A live match can now switch formation with `club.live.formation {formation}` (4-3-3 / 4-4-2 / 4-2-3-1): the saved eleven is re-slotted without changing personnel, the keeper rule is enforced, the current score and timeline are untouched, the active tactic is preserved and the remaining blocks use the new shape — refused for unknown shapes, finished matches or when no live match is running. A drawn challenge-cup final now records an explicit **penalty shootout score** (`match.pens`), with a sudden-death tiebreak that can never end level, and the winner follows the shootout rather than an opaque hash comparison.
+
+Validation: typecheck, **542 tests** — three new live-formation cases (legal eleven and new slots, refusals, score/timeline continuity and deterministic completion) and a new cup case that searches seeds for a drawn final and checks the recorded shootout, its non-tie and the matching winner — plus four migration checks, `npm run prebuild` and the production build. Schema remains 8.
+
+## 3.77 — balance model, scouting filters and a migration drill
+
+`lib/club-balance.ts` encodes the PLAN 2.2 income table as testable arithmetic: the PLAN example day (four tasks + forty focused minutes) pays **50 XP and 100 funds**, two focus buckets with no remainder; a 50-minute session pays 20 funds with 10 minutes carried; level-ups add 40 funds each. It also exposes the weekly curve (700 funds / 350 XP for the example day), days-to-target maths (1,000 funds ⇒ 10 days) and weekly goal affordability from the PLAN price table, so the acceptance table's “balance” row has a reproducible check instead of a claim.
+
+`lib/club-scouting-filters.ts` adds league / region / position filtering over the versioned roster and club directory (`filterRoster`, `scoutingFilterOptions`, `describeFilters`), and `scoutingPlan` now accepts `clubs` + `filters` so recommendations respect the same filter as the list.
+
+`work/qa/migration-drill.ts` runs a legacy-shaped document through the migration preview and confirmation: it proves the one-off grant is applied exactly once (30 → 180 with a second confirm unchanged), the preview counts legacy XP (15) and carried funds (30), old purchases/rewards/sessions are untouched, the purchased frame becomes a display right, `migratedAt` is stamped and an unconfirmed call is refused. **9/9 drill checks pass**, report in `work/qa/migration-drill-report.json`.
+
+A local `.github/workflows/checks.yml` now runs typecheck, tests, migration tests, prebuild and the production build on every push/PR (not pushed yet).
+
+Validation: typecheck, **546 tests** — four balance checks and four filter checks added — plus four migration checks, `npm run prebuild` and the production build. Schema remains 8.
+
+## 3.78 — in-match formation, penalty details and tactic advice on screen
+
+The live-match panel now has a formation picker (4-3-3 / 4-4-2 / 4-2-3-1) posting `club.live.formation`, showing the current shape and announcing the switch; verified on a real live match (4-4-2 → 4-3-3, tactic preserved, `live.session.home.formation` updated). A drawn cup final shows its shootout: “点球 4–3” with five dots per side and the winner highlighted (labelled mock for the drawn-final case). The folded “开始新比赛” area gained a recommended tactic from `matchBriefing` with its reason and an apply button; verified changing `club.tactics.active` from counter to balanced with the announcement.
+
+A live v2 match now also has an explicit **resume test**: advancing nine blocks, serialising the document to JSON, then finishing from the snapshot produces the identical score, timeline, seed and line-ups as finishing without the interruption — covering the PLAN acceptance item “切换、中断与恢复不重抽结果”.
+
+Validation: typecheck, **547 tests**, four migration checks, `npm run prebuild`, the production build and the static demo build. Schema remains 8.

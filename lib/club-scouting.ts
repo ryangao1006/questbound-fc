@@ -1,6 +1,7 @@
 import {clubRatings,type ClubState} from './club-state.ts';
 import {scoutCap,signingPrice,worldPlayerOvr} from './club-transfers.ts';
 import type {FootballRosterPlayer} from './football-data.ts';
+import {clubIndex,matchesScoutingFilters,type RosterClub,type ScoutingFilters} from './club-scouting-filters.ts';
 
 /**
  * Scouting recommendations (PLAN 3.5 "推荐名单").
@@ -37,11 +38,12 @@ export function scoutingNeeds(club:ClubState):ScoutingNeed[]{
   .sort((a,b)=>b.gap-a.gap||a.line.localeCompare(b.line));
 }
 export function weakestLine(club:ClubState):ClubLine{return scoutingNeeds(club)[0].line}
-export function scoutingPlan(club:ClubState,roster:readonly FootballRosterPlayer[],budget:number,options:{limit?:number;occupied?:Iterable<string>}={}):ScoutingPlan{
+export function scoutingPlan(club:ClubState,roster:readonly FootballRosterPlayer[],budget:number,options:{limit?:number;occupied?:Iterable<string>;clubs?:readonly RosterClub[];filters?:ScoutingFilters}={}):ScoutingPlan{
  const limit=Math.max(1,Math.min(10,options.limit??5)),occupied=new Set(options.occupied??[]),cap=scoutCap(club.facilities.scoutCentre);
  const needs=scoutingNeeds(club),weak=needs[0].line,ratings=clubRatings(club);
  const starters=new Set(club.lineup);
- const candidates=roster.filter(player=>!occupied.has(player.id)&&!club.players.some(entry=>entry.id===player.id));
+ const index=options.clubs?clubIndex(options.clubs):null;
+ const candidates=roster.filter(player=>!occupied.has(player.id)&&!club.players.some(entry=>entry.id===player.id)&&(!index||!options.filters||matchesScoutingFilters(player,index,options.filters)));
  const recommended:ScoutingRecommendation[]=[];
  for(const player of candidates){
   const ovr=worldPlayerOvr(player),line=lineOf(player.position);

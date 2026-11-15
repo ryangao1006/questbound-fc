@@ -9,7 +9,7 @@ import type {ClubState} from './club-state.ts';
  */
 export type CupTier=0|1|2|3;
 export type CupTeam={id:string;name:string;shortName:string;lines:ClubTeam['lines'];tactic:ClubTeam['tactic'];realClubId?:string};
-export type CupMatch={round:1|2;home:string;away:string;score?:[number,number]};
+export type CupMatch={round:1|2;home:string;away:string;score?:[number,number];pens?:[number,number]};
 export type ClubCup={id:string;tier:CupTier;seed:number;teams:CupTeam[];matches:CupMatch[];round:0|1|2;winner?:string;finished:boolean};
 const PRESTIGE_BANDS:[number,number][]=[[60,68],[69,75],[76,82],[83,89]];
 const clamp=(value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
@@ -54,8 +54,21 @@ export function playCupRound(club:ClubState,cup:ClubCup):{cup:ClubCup;report?:Cl
   if(match.home==='club'||match.away==='club')report=sim;
   results.push({home:match.home,away:match.away,score:sim.score});
  }
- const winnerOf=(match:CupMatch)=>{const [homeGoals,awayGoals]=match.score!;if(homeGoals!==awayGoals)return homeGoals>awayGoals?match.home:match.away;
-  const homePens=hash(`${cup.seed}:${match.home}:pen`),awayPens=hash(`${cup.seed}:${match.away}:pen`);return homePens>=awayPens?match.home:match.away};
+ const shootout=(match:CupMatch):[number,number]|null=>{
+  const [homeGoals,awayGoals]=match.score!;
+  if(homeGoals!==awayGoals)return null;
+  let home=3+hash(`${cup.seed}:${match.home}:pen`)%3,away=3+hash(`${cup.seed}:${match.away}:pen`)%3,round=0;
+  if(home===away){const bonus=hash(`${cup.seed}:${match.home}:${match.away}:sd`);home=away+1+(bonus%2)}
+  void round;
+  return [home,away];
+ };
+ const winnerOf=(match:CupMatch)=>{
+  const [homeGoals,awayGoals]=match.score!;
+  if(homeGoals!==awayGoals)return homeGoals>awayGoals?match.home:match.away;
+  const pens=shootout(match);
+  if(pens)match.pens=pens;
+  return (pens?.[0]??0)>=(pens?.[1]??0)?match.home:match.away;
+ };
  if(round===1){
   const semiWinners=current.map(winnerOf);
   const final:CupMatch={round:2,home:semiWinners[0],away:semiWinners[1]};

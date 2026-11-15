@@ -31,7 +31,7 @@ A football **club-management game** built on top of a real, working personal pla
 - Create a club (name, colours, kit), squad of 20 generated players, 4-3-3 / 4-4-2 / 4-2-3-1 formations, line-up and auto-pick.
 - Line ratings from weighted attributes (DEF/MID/ATT) plus a 10 % keeper share; training one attribute at a time with a training-centre cap.
 - Five tactics with training levels and real trade-offs; facilities (training centre, scout centre, stadium) with level gates.
-- Fixed-price transfers from a versioned real-player roster, 50 % resale, world uniqueness, scout-centre OVR caps and a recommendations list that names your weakest line.
+- Fixed-price transfers from a versioned real-player roster with league/region/position filters, 50 % resale, world uniqueness, scout-centre OVR caps and a recommendations list that names your weakest line.
 - Four-tier league (8 clubs, 14 rounds, promotion/relegation), a fictional four-club challenge cup with penalties, season history and honours.
 - Player condition: fitness and injuries after matches, recovery on the bench, and a default assistant that keeps the eleven legal and can auto-substitute (toggleable).
 - Collectibles: commemorative kits, historic line-ups, club display frames/backdrops, generated crest, stadium decorations unlocked by facilities and trophies.
