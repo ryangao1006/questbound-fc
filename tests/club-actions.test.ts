@@ -23,14 +23,6 @@ test('a fresh club is nudged to start a season and enter the cup',()=>{
  assert(actions[0].titleZh.length>0);
 });
 
-test('a paused live match is the first urgent action',()=>{
- const live=reduceCommand(withClub(),{type:'club.live.start',id:'live-a',tier:0} as never);
- const actions=nextClubActions(live);
- assert.equal(actions[0].id,'live');
- assert.equal(actions[0].urgent,true);
- assert(actions.length<=3);
-});
-
 test('a season in progress suggests the next round, and a missing cup suggests entering',()=>{
  let state=withClub();
  state=reduceCommand(state,{type:'club.league.start',id:'lg-a',tier:0} as never);

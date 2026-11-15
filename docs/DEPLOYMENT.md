@@ -46,7 +46,7 @@ Schema rules: applied migrations are immutable, `SCHEMA_VERSION` must stay align
 | Typecheck, unit tests (549), migration tests, prebuild, production build | green in this repository |
 | Static demo build and GitHub Pages deployment | automated and live |
 | Migration drill (`work/qa/migration-drill.ts`, 9/9 checks) | green |
-| 3D watch 60 FPS, zero ball teleports, reduced-motion and WebGL fallback | measured on this machine |
+| 3D base room previews, 60 FPS, reduced-motion and WebGL fallback | measured on this machine |
 | Demo index chunk 650 KB with lazy roster and lazy 3D chunks | measured |
 | Real-phone FPS and touch checks | **needs a physical device** |
 | Todoist / iCloud round trips, reminders and restore against real providers | **needs your accounts** |

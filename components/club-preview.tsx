@@ -3,8 +3,6 @@
 import Link from "next/link";
 import {
   Fragment,
-  Suspense,
-  lazy,
   memo,
   useCallback,
   useEffect,
@@ -56,7 +54,6 @@ import {
   type LeagueTier,
 } from "@/lib/club-league";
 import type { ClubCup, CupMatch, CupTier } from "@/lib/club-cup";
-import { opponentFor, simulateClubMatch, teamFromClub } from "@/lib/club-match";
 import {
   CLUB_TACTICS,
   FACILITY_MAX,
@@ -68,7 +65,6 @@ import {
   facilityGate,
   facilityUpgradeCost,
   tacticTrainingCost,
-  seedFrom,
   type ClubMatchRecord,
   type ClubReceipt,
   type ClubState,
@@ -97,7 +93,6 @@ import {
   type ClubCrest,
   type PlayerCard,
 } from "@/lib/club-cards";
-import { matchBriefing } from "@/lib/match-briefing";
 import {
   celebrationFor,
   celebrationStars,
@@ -106,17 +101,9 @@ import {
 } from "@/lib/club-celebration";
 import {
   decorOptions,
-  resolveDecor,
   type DecorKind,
   type DecorOption,
-  type ResolvedDecor,
 } from "@/lib/club-decor";
-import {
-  storyboardBeats,
-  storyboardFromRecord,
-  storyboardSummary,
-  type StoryPanel,
-} from "@/lib/match-storyboard";
 import {
   canTrainDetail,
   nextTrainingAttribute,
@@ -135,7 +122,6 @@ import {
 import { clubHomeSummary, nextClubActions } from "@/lib/club-actions";
 import {
   budgetSplit,
-  compareBars,
   formationDots,
   levelPips,
   polar,
@@ -1208,24 +1194,6 @@ const TACTIC_NAME_KEY: Record<ClubTactic, CopyKey> = {
   press: "tacticPress",
 };
 
-const BRIEFING_HEADLINE_ZH: Record<string, string> = {
-  "You have the edge across the pitch.": "你在全场占据优势。",
-  "They look stronger on paper — be compact.": "纸面实力对手更强——保持紧凑。",
-  "Evenly matched — the midfield may decide it.": "实力接近——中场可能决定比赛。",
-};
-
-const BRIEFING_REASON_ZH: Record<string, string> = {
-  "Their defence is the weak spot — press high and force mistakes.": "对手防线是弱点——高位逼抢，迫使对手失误。",
-  "They control midfield — sit deeper and hit them on the counter.": "对手控制中场——回收更深，抓反击机会。",
-  "Their attack is stronger — keep the ball to protect the back line.": "对手进攻更强——控住球，保护后防线。",
-  "They press centrally — stretch them with width.": "对手在中路逼抢——用宽度拉开他们。",
-  "They commit bodies wide — the counter is open.": "对手在边路投入兵力——反击空间已经打开。",
-  "No clear edge — keep the shape and take the chances you get.": "没有明显优势——保持阵型，把握出现的机会。",
-};
-
-const briefingText = (language: Language, english: string, translations: Record<string, string>) =>
-  language === "zh" ? translations[english] ?? english : english;
-
 const cardTierLabel = (tier: "gold" | "silver" | "bronze"): CopyKey =>
   tier === "gold" ? "cardTierGold" : tier === "silver" ? "cardTierSilver" : "cardTierBronze";
 
@@ -1280,40 +1248,9 @@ const MATCH_TIER_DESC_KEY: CopyKey[] = [
   "matchTierEliteDesc",
 ];
 
-/** lib/club-match.ts explanations are English; keep the raw string for en and map the known zh phrasings. */
-const EXPLANATION_ZH: Record<string, string> = {
-  "your attack": "你的锋线",
-  "your midfield": "你的中场",
-  "their forwards found space behind your line": "对手前锋打穿了防线身后",
-  "their midfield broke through the middle": "对手中场从中路突破",
-  "you kept their chances low": "你限制了对手的机会",
-  "High pressing won the ball early but left space behind.": "高位压迫让球队早早抢回球权，但身后会留下空间。",
-  "Patient possession kept the ball but slowed the final pass.": "耐心控球保住了球权，但最后一传变慢。",
-  "Counter-attacks created the best chances after defending deep.": "深度防守后的反击创造了最好的机会。",
-  "Width stretched them, but crosses needed more bodies in the box.": "边路宽度拉开了对手，但传中时禁区里人手不足。",
-  "Balanced shape kept the team compact.": "均衡阵型让球队保持紧凑。",
-  "Keep this shape and train the line that created the chances.": "保持这套阵型，并训练创造机会的那条线。",
-};
-
-function explainText(language: Language, raw: string): string {
-  if (language === "en") return raw;
-  const direct = EXPLANATION_ZH[raw];
-  if (direct) return direct;
-  if (raw.startsWith("Improve ")) {
-    const line = raw.includes("your attack") ? "锋线" : raw.includes("your midfield") ? "中场" : "防线";
-    return `加强你的${line}，或降低对手在该线的优势。`;
-  }
-  return raw;
-}
-
 function matchTierIndex(value: number): 0 | 1 | 2 | 3 {
   const rounded = Math.round(Number(value) || 0);
   return (rounded < 0 ? 0 : rounded > 3 ? 3 : rounded) as 0 | 1 | 2 | 3;
-}
-
-function explainedLineLabel(language: Language, line: string): string {
-  const key = LINE_LABEL_KEY[line as ClubPreviewPlayer["line"]];
-  return key ? copy(language, key) : line;
 }
 
 function matchScoreline(record: ClubMatchRecord): string {
@@ -1435,23 +1372,6 @@ function tabFromUrl(url: URL): { tab: ClubTab; anchor: string | null } {
   if (anchor && TAB_FOR_ANCHOR[anchor]) return { tab: TAB_FOR_ANCHOR[anchor], anchor };
   if (anchor === "club-overview") return { tab: "overview", anchor };
   return { tab: "overview", anchor: null };
-}
-
-/* three.js lives in its own chunk and is only fetched when the 3D watch opens. */
-const LazyClubWatch3D = lazy(() => import("./club-watch-3d"));
-
-function supportsWebGL(): boolean {
-  if (typeof document === "undefined") return true;
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
-
-function replayKindKey(kind: "goal" | "chance" | "save" | "sub"): CopyKey {
-  return kind === "goal" ? "replayGoal" : kind === "save" ? "replaySave" : kind === "sub" ? "replaySub" : "replayChance";
 }
 
 const SEASON_OUTCOME_KEY: Record<SeasonRecord["outcome"], CopyKey> = {
@@ -1775,475 +1695,6 @@ function SquadTable({
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function MatchStoryboard({
-  record,
-  language,
-  homeColor,
-  awayColor,
-  onOpenWatch,
-}: {
-  record: ClubMatchRecord;
-  language: Language;
-  homeColor: string;
-  awayColor: string;
-  onOpenWatch: () => void;
-}) {
-  const hasTimeline = Array.isArray(record.events) && record.events.length > 0;
-  const board = useMemo(() => (hasTimeline ? storyboardFromRecord(record) : null), [hasTimeline, record]);
-  if (!board) {
-    return (
-      <section className="club-storyboard club-storyboard-empty" aria-labelledby="club-storyboard-heading">
-        <div className="club-table-heading">
-          <h3 id="club-storyboard-heading">{copy(language, "storyboardTitle")}</h3>
-        </div>
-        <p className="club-note" role="status">{copy(language, "storyboardNoData")}</p>
-      </section>
-    );
-  }
-  const summary = storyboardSummary(board);
-  const beats = storyboardBeats(board);
-  const kindLabel = (kind: StoryPanel["kind"]) =>
-    copy(
-      language,
-      kind === "goal"
-        ? "storyboardGoal"
-        : kind === "save"
-          ? "storyboardSave"
-          : kind === "chance"
-            ? "storyboardChance"
-            : kind === "sub"
-              ? "storyboardSub"
-              : "storyboardQuiet",
-    );
-  const panelDetail = (panel: StoryPanel) => {
-    const event = panel.events[0];
-    if (!event) return copy(language, "storyboardQuiet");
-    if (event.kind === "goal") return `⚽ ${event.scorer ?? (event.side === "home" ? board.homeName : board.awayName)}`;
-    if (event.kind === "save") return `🧤 ${event.scorer ?? board.awayName}`;
-    if (event.kind === "sub") return `⇄ ${event.out ?? "—"} → ${event.scorer ?? "—"}`;
-    return `◌ ${event.scorer ?? (event.side === "home" ? board.homeName : board.awayName)}`;
-  };
-  const panelSide = (panel: StoryPanel) => {
-    const goal = panel.events.find((event) => event.kind === "goal");
-    return goal ? goal.side : null;
-  };
-  const ariaLabel = (panel: StoryPanel) => {
-    const eventText = panel.events.length ? panel.events.map((event) => `${kindLabel(event.kind)}${event.scorer ? ` ${event.scorer}` : ""}`).join(", ") : kindLabel("quiet");
-    return `${panel.minuteStart}–${panel.minuteEnd}' · ${eventText} · ${board.homeName} ${panel.score[0]}–${panel.score[1]} ${board.awayName}`;
-  };
-  return (
-    <section className="club-storyboard" aria-labelledby="club-storyboard-heading">
-      <div className="club-storyboard-head">
-        <div>
-          <h3 id="club-storyboard-heading">{copy(language, "storyboardTitle")}</h3>
-          <p className="club-storyboard-summary">{copy(language, "storyboardSummary", summary.panels, summary.beats)}</p>
-        </div>
-        <span className="club-storyboard-hint">{copy(language, "storyboardHint")}</span>
-      </div>
-      <div
-        className="club-storyboard-scroll"
-        role="region"
-        aria-label={copy(language, "storyboardAria")}
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-          event.preventDefault();
-          event.currentTarget.scrollBy({ left: event.key === "ArrowRight" ? 150 : -150, behavior: "smooth" });
-        }}
-      >
-        <ol className="club-storyboard-track">
-          {board.panels.map((panel) => {
-            const hasEvents = panel.events.length > 0;
-            const side = panelSide(panel);
-            return (
-              <li key={panel.index}>
-                <button
-                  type="button"
-                  className={`club-storyboard-panel is-${panel.kind}${side ? ` is-side-${side}` : ""}${hasEvents ? " has-events" : ""}`}
-                  aria-label={ariaLabel(panel)}
-                  aria-disabled={!hasEvents}
-                  disabled={!hasEvents}
-                  data-panel-index={panel.index}
-                  data-panel-kind={panel.kind}
-                  data-panel-score={`${panel.score[0]}-${panel.score[1]}`}
-                  data-panel-beat={hasEvents ? "true" : "false"}
-                  onClick={() => {
-                    if (hasEvents) onOpenWatch();
-                  }}
-                  style={
-                    {
-                      "--storyboard-home": homeColor,
-                      "--storyboard-away": awayColor,
-                    } as CSSProperties
-                  }
-                >
-                  <span className="club-storyboard-minute">{`${panel.minuteStart}–${panel.minuteEnd}'`}</span>
-                  <b className="club-storyboard-score">{`${panel.score[0]} – ${panel.score[1]}`}</b>
-                  <span className="club-storyboard-detail">{panelDetail(panel)}</span>
-                  <span className="club-storyboard-kind">{kindLabel(panel.kind)}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-      <p className="club-visually-hidden">{`${beats.length} beats`}</p>
-    </section>
-  );
-}
-
-function MatchReplay({
-  record,
-  language,
-  homeName,
-  awayName,
-  homeColor,
-  awayColor,
-  homeShortName,
-  awayShortName,
-  homeTrophies = 0,
-  decor,
-  watchOpen,
-  onWatchOpenChange,
-  replayOpen,
-  onReplayOpenChange,
-}: {
-  record: ClubMatchRecord;
-  language: Language;
-  homeName: string;
-  awayName: string;
-  homeColor: string;
-  awayColor: string;
-  homeShortName?: string;
-  awayShortName?: string;
-  homeTrophies?: number;
-  decor?: ResolvedDecor;
-  watchOpen?: boolean;
-  onWatchOpenChange?: (open: boolean) => void;
-  replayOpen?: boolean;
-  onReplayOpenChange?: (open: boolean) => void;
-}) {
-  const events = record.events;
-  const eventsAvailable = Array.isArray(events);
-  const sortedEvents = useMemo(
-    () => (events ? [...events].sort((a, b) => a.minute - b.minute) : []),
-    [events],
-  );
-  const [internalOpen, setInternalOpen] = useState(false);
-  const open = replayOpen ?? internalOpen;
-  const setOpen = (value: boolean) => {
-    if (onReplayOpenChange) onReplayOpenChange(value);
-    else setInternalOpen(value);
-  };
-  const [internalShow3d, setInternalShow3d] = useState(false);
-  const show3d = watchOpen ?? internalShow3d;
-  const setShow3d = (value: boolean) => {
-    if (onWatchOpenChange) onWatchOpenChange(value);
-    else setInternalShow3d(value);
-  };
-  const [webglAvailable, setWebglAvailable] = useState(true);
-  const [minute, setMinute] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState<1 | 2 | 4>(1);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const commentaryRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time WebGL capability probe.
-    setWebglAvailable(supportsWebGL());
-  }, []);
-
-  /* Advance exactly one match minute at a time; at 90 the next timeout is skipped. */
-  useEffect(() => {
-    if (!open || !playing || minute >= 90) return;
-    const timeout = window.setTimeout(() => setMinute((value) => Math.min(90, value + 1)), 400 / speed);
-    return () => window.clearTimeout(timeout);
-  }, [open, playing, minute, speed]);
-
-  /* Keep the commentary scrolled to the last event that has happened. */
-  useEffect(() => {
-    if (!open) return;
-    const container = commentaryRef.current;
-    const current = container?.querySelector<HTMLElement>(".club-replay-comment.is-current");
-    if (!container || !current) return;
-    const target = current.offsetTop - container.clientHeight / 2 + current.clientHeight / 2;
-    container.scrollTop = Math.max(0, target);
-  }, [open, minute]);
-
-  const finished = minute >= 90;
-  const home = record.teams?.home ?? homeName;
-  const away = record.teams?.away ?? awayName;
-  const goals = sortedEvents.filter((event) => event.kind === "goal" && event.minute <= minute);
-  const homeGoals = goals.filter((event) => event.side === "home").length;
-  const awayGoals = goals.filter((event) => event.side === "away").length;
-  const lastVisibleIndex = sortedEvents.reduce(
-    (index, event, currentIndex) => (event.minute <= minute ? currentIndex : index),
-    -1,
-  );
-  const currentEvent = lastVisibleIndex >= 0 ? sortedEvents[lastVisibleIndex] : null;
-  const announce = !open
-    ? ""
-    : finished
-      ? copy(language, "replayFullTimeAnnounce", home, homeGoals, away, awayGoals)
-      : currentEvent
-        ? `${minute}' ${copy(
-            language,
-            currentEvent.kind === "goal" ? "replayGoal" : currentEvent.kind === "save" ? "replaySave" : "replayChance",
-          )} · ${currentEvent.scorer ?? (currentEvent.side === "home" ? home : away)}`
-        : "";
-
-  const toggle = () => {
-    if (finished) {
-      setMinute(0);
-      setPlaying(true);
-      return;
-    }
-    setPlaying((value) => !value);
-  };
-  const seek = (delta: number) => setMinute((value) => Math.max(0, Math.min(90, value + delta)));
-  const openReplay = () => {
-    setOpen(true);
-    setMinute(0);
-    setPlaying(false);
-    setSpeed(1);
-    window.setTimeout(() => panelRef.current?.focus(), 0);
-  };
-  const closeReplay = () => {
-    setPlaying(false);
-    setOpen(false);
-    setMinute(0);
-  };
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement | null;
-    const interactive =
-      target !== null && target !== event.currentTarget && ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA"].includes(target.tagName);
-    if (interactive) return;
-    if (event.key === " " || event.code === "Space") {
-      event.preventDefault();
-      toggle();
-    } else if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      seek(-5);
-    } else if (event.key === "ArrowRight") {
-      event.preventDefault();
-      seek(5);
-    }
-  };
-
-  if (!eventsAvailable) {
-    return (
-      <div className="club-replay-wrap">
-        <button type="button" className="club-button club-button-secondary club-replay-open" disabled>
-          {copy(language, "replayOpen")}
-        </button>
-        <p className="club-warning-inline">{copy(language, "replayUnavailable")}</p>
-        <MatchStoryboard record={record} language={language} homeColor={homeColor} awayColor={awayColor} onOpenWatch={() => setShow3d(true)} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="club-replay-wrap">
-      <div className="club-replay-launch">
-        <button
-          type="button"
-          className="club-button club-button-secondary club-replay-open"
-          onClick={open ? closeReplay : openReplay}
-          aria-expanded={open}
-          aria-controls="club-replay-panel"
-        >
-          {open ? copy(language, "replayClose") : copy(language, "replayOpen")}
-        </button>
-        <button
-          type="button"
-          className="club-button club-button-secondary club-replay-3d-toggle"
-          onClick={() => setShow3d(!show3d)}
-          aria-expanded={show3d}
-          aria-controls="club-watch3d-panel"
-        >
-          {show3d ? copy(language, "watch3dClose") : copy(language, "watch3dOpen")}
-        </button>
-        <span className="club-badge club-badge-replay">{copy(language, "replayDataBadge")}</span>
-        <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p className="club-note">{copy(language, "replay3dNote")}</p></details>
-      </div>
-      <details className="club-storyboard-details">
-        <summary>{copy(language, "storyboardTitle")}</summary>
-        <MatchStoryboard
-          record={record}
-          language={language}
-          homeColor={homeColor}
-          awayColor={awayColor}
-          onOpenWatch={() => {
-            setShow3d(true);
-            window.setTimeout(() => document.getElementById("club-watch3d-panel")?.scrollIntoView({ block: "start", behavior: "smooth" }), 120);
-          }}
-        />
-      </details>
-      {show3d ? (
-        webglAvailable ? (
-          <div id="club-watch3d-panel">
-            <Suspense
-              fallback={
-                <div className="club-watch3d-loading" role="status" aria-live="polite">
-                  <span className="club-watch3d-spinner" aria-hidden="true" />
-                  <p>{copy(language, "watch3dLoading")}</p>
-                </div>
-              }
-            >
-              <LazyClubWatch3D
-                events={sortedEvents}
-                path={record.path}
-                timeline={record.timeline}
-                ballTrack={(record as ClubMatchRecord & { ballTrack?: { m: number; x: number; y: number }[] }).ballTrack}
-                lineups={record.lineups}
-                homeName={home}
-                awayName={away}
-                homeColor={homeColor}
-                awayColor={awayColor}
-                homeShortName={homeShortName}
-                awayShortName={awayShortName}
-                homeTrophies={homeTrophies}
-                decor={decor}
-                language={language}
-                onClose={() => setShow3d(false)}
-              />
-            </Suspense>
-          </div>
-        ) : (
-          <div className="club-watch3d-fallback" role="status" aria-live="polite">
-            <b>{copy(language, "watch3dFallbackTitle")}</b>
-            <p>{copy(language, "watch3dFallbackNote")}</p>
-            <div className="club-watch3d-fallback-actions">
-              <button
-                type="button"
-                className="club-button club-button-primary"
-                onClick={() => {
-                  setShow3d(false);
-                  openReplay();
-                }}
-              >
-                {copy(language, "watch3dTextReplay")}
-              </button>
-              <button type="button" className="club-button club-button-secondary" onClick={() => setShow3d(false)}>
-                {copy(language, "watch3dFallbackClose")}
-              </button>
-            </div>
-          </div>
-        )
-      ) : null}
-      {open ? (
-        <div
-          className="club-replay"
-          id="club-replay-panel"
-          ref={panelRef}
-          role="region"
-          aria-label={copy(language, "replayTitle")}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-        >
-          <p className="club-replay-disclaimer">
-            {`${copy(language, "replayKeyboardHint")}`}
-          </p>
-          <div className="club-replay-scoreboard">
-            <span className="club-replay-side">{home}</span>
-            <b className="club-replay-score">{`${homeGoals} – ${awayGoals}`}</b>
-            <span className="club-replay-side club-replay-side-away">{away}</span>
-            <span className="club-replay-clock">
-              <span className="club-replay-minute">{`${minute}'`}</span>
-              {finished ? <span className="club-pill club-pill-active">{copy(language, "replayFullTime")}</span> : null}
-            </span>
-          </div>
-          <div className="club-replay-controls">
-            <button type="button" className="club-button club-button-primary club-replay-toggle" onClick={toggle}>
-              {finished ? copy(language, "replayAgain") : playing ? copy(language, "replayPause") : copy(language, "replayPlay")}
-            </button>
-            <div className="club-replay-speed" role="group" aria-label={copy(language, "replaySpeedLabel")}>
-              {([1, 2, 4] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`club-replay-speed-button${speed === value ? " is-selected" : ""}`}
-                  aria-pressed={speed === value}
-                  onClick={() => setSpeed(value)}
-                >
-                  {`${value}×`}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="club-icon-button club-replay-seek" onClick={() => seek(-5)} aria-label={copy(language, "replayBack5")}>
-              −5′
-            </button>
-            <button type="button" className="club-icon-button club-replay-seek" onClick={() => seek(5)} aria-label={copy(language, "replayForward5")}>
-              +5′
-            </button>
-          </div>
-          <div className="club-replay-progress">
-            <input
-              type="range"
-              min={0}
-              max={90}
-              step={1}
-              value={minute}
-              onChange={(event) => setMinute(Number(event.target.value))}
-              aria-label={copy(language, "replayProgressLabel")}
-              aria-valuetext={`${minute}'`}
-            />
-            <span className="club-replay-progress-labels">
-              <span>0′</span>
-              <span>45′</span>
-              <span>90′</span>
-            </span>
-          </div>
-          <div className="club-replay-stats">
-            <span>
-              {`${copy(language, "matchPossession")} ${Math.round(record.possession[0])}% – ${Math.round(record.possession[1])}%`}
-            </span>
-            <span>
-              {`${copy(language, "matchShots")} ${record.shots[0]} (${record.onTarget[0]}) – ${record.shots[1]} (${record.onTarget[1]})`}
-            </span>
-          </div>
-          <div className="club-replay-commentary" ref={commentaryRef}>
-            <h4 className="club-subheading">{copy(language, "replayCommentary")}</h4>
-            {sortedEvents.length ? (
-              <ol className="club-replay-events">
-                {sortedEvents.map((event, index) => {
-                  const future = event.minute > minute;
-                  const current = index === lastVisibleIndex;
-                  return (
-                    <li
-                      key={`${event.minute}:${event.side}:${event.kind}:${index}`}
-                      className={`club-replay-comment${future ? " is-future" : ""}${current ? " is-current" : ""}`}
-                    >
-                      <span className="club-replay-comment-minute">{`${event.minute}'`}</span>
-                      <span className={`club-replay-comment-kind is-${event.kind}`}>
-                        {copy(language, replayKindKey(event.kind))}
-                      </span>
-                      <span className="club-replay-comment-body">
-                        <b>{event.side === "home" ? home : away}</b>
-                        {event.kind === "sub"
-                          ? ` · ${event.out ?? "—"} → ${event.scorer ?? "—"}`
-                          : event.scorer
-                            ? ` · ${event.scorer}`
-                            : ""}
-                        {event.label && event.kind !== "goal" && event.kind !== "sub" ? ` · ${event.label}` : ""}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
-            ) : (
-              <p className="club-note">{copy(language, "replayNoEvents")}</p>
-            )}
-          </div>
-          <p className="club-replay-live" role="status" aria-live="polite">
-            {announce}
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -2705,14 +2156,10 @@ export default function ClubPreviewPage() {
   const [clubTab, setClubTab] = useState<ClubTab>("overview");
   const pendingAnchorRef = useRef<string | null>(null);
   const [decorAnnouncement, setDecorAnnouncement] = useState("");
-  const [latestWatchOpen, setLatestWatchOpen] = useState(false);
-  const [latestReplayOpen, setLatestReplayOpen] = useState(false);
   const [assistantAnnouncement, setAssistantAnnouncement] = useState("");
   const [matchConditionSummary, setMatchConditionSummary] = useState<MatchConditionSummary | null>(null);
-  const [liveFormationAnnouncement, setLiveFormationAnnouncement] = useState("");
   const [conflictRetry, setConflictRetry] = useState<Record<string, unknown> | null>(null);
   const lastCommandRef = useRef<Record<string, unknown> | null>(null);
-  const [tacticSuggestAnnouncement, setTacticSuggestAnnouncement] = useState("");
   const [isDemo, setIsDemo] = useState(false);
   const [matchResultAnnouncement, setMatchResultAnnouncement] = useState("");
   const [onboardingVisible, setOnboardingVisible] = useState(false);
@@ -2737,18 +2184,7 @@ export default function ClubPreviewPage() {
   const [facilityReceipt, setFacilityReceipt] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const [matchTier, setMatchTier] = useState<0 | 1 | 2 | 3>(1);
-  const [liveTier, setLiveTier] = useState<0 | 1 | 2 | 3>(0);
-  const [confirmingAbandonLive, setConfirmingAbandonLive] = useState(false);
-  const [subOutId, setSubOutId] = useState("");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
-  const [subInId, setSubInId] = useState("");
-  const [liveFinished, setLiveFinished] = useState<{
-    score: [number, number];
-    opponent: string;
-    home: string;
-    matchId: string;
-  } | null>(null);
-  const liveEventsRef = useRef<HTMLDivElement | null>(null);
   const [scoutingFilters, setScoutingFilters] = useState<ScoutingFilters>({});
   const [scoutDataset, setScoutDataset] = useState<ScoutDataset | null>(null);
   const [scoutLoadState, setScoutLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -3057,109 +2493,6 @@ export default function ClubPreviewPage() {
       club?.history ? [...club.history].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20) : [],
     [club],
   );
-  const latestMatchReport = useMemo(() => {
-    if (!club || !latestMatch) return null;
-    try {
-      return simulateClubMatch(teamFromClub(club), opponentFor(latestMatch.tier, latestMatch.seed), latestMatch.seed);
-    } catch {
-      return null;
-    }
-  }, [club, latestMatch]);
-  const latestMatchReportMatches = Boolean(
-    latestMatchReport &&
-      latestMatch &&
-      latestMatchReport.score[0] === latestMatch.score[0] &&
-      latestMatchReport.score[1] === latestMatch.score[1],
-  );
-  const latestMatchTopRating = latestMatchReport
-    ? Math.max(0, ...latestMatchReport.playerRatings.home.map((row) => row.rating))
-    : 0;
-
-  const liveMatchState = club?.live ?? null;
-  const liveSession = liveMatchState?.session ?? null;
-  const liveBriefing = club && liveSession ? matchBriefing(club, liveSession.away) : null;
-  const tacticSuggestion = useMemo(() => {
-    if (!club) return null;
-    try {
-      const opponent = opponentFor(matchTier, seedFrom(`${club.id}:${matchTier}:${club.matches?.length ?? 0}`));
-      const briefing = matchBriefing(club, opponent);
-      return {
-        tactic: briefing.suggestedTactic,
-        reason: briefing.tacticReason,
-        opponentName: opponent.name,
-        opponentTactic: opponent.tactic,
-        fallback: false,
-      };
-    } catch {
-      return {
-        tactic: "balanced" as ClubTactic,
-        reason: "",
-        opponentName: null,
-        opponentTactic: null,
-        fallback: true,
-      };
-    }
-  }, [club, matchTier]);
-  const liveLatestEvent =
-    liveSession && liveSession.events.length ? liveSession.events[liveSession.events.length - 1] : null;
-  const liveAnnouncement = liveFinished
-    ? copy(
-        language,
-        "liveFullTime",
-        liveFinished.home,
-        liveFinished.score[0],
-        liveFinished.score[1],
-        liveFinished.opponent,
-      )
-    : liveSession
-      ? `${copy(language, "liveBlock", liveSession.block, 18)} · ${liveSession.score[0]} – ${liveSession.score[1]}${
-          liveLatestEvent
-            ? ` · ${liveLatestEvent.minute}' ${copy(language, replayKindKey(liveLatestEvent.kind))}${
-                liveLatestEvent.kind === "sub"
-                  ? ` · ${liveLatestEvent.out ?? "—"} → ${liveLatestEvent.scorer ?? "—"}`
-                  : liveLatestEvent.scorer
-                    ? ` · ${liveLatestEvent.scorer}`
-                    : ""
-              }`
-            : ""
-        }`
-      : "";
-
-  useEffect(() => {
-    const element = liveEventsRef.current;
-    if (!element) return;
-    element.scrollTop = element.scrollHeight;
-  }, [liveSession?.block, liveSession?.events?.length]);
-
-  const liveStarterPlayers = club
-    ? club.lineup
-        .map((playerId) => club.players.find((player) => player.id === playerId))
-        .filter((player): player is NonNullable<typeof player> => Boolean(player))
-    : [];
-  const liveBenchPlayers = club ? club.players.filter((player) => !club.lineup.includes(player.id)) : [];
-  const effectiveSubOutId = liveStarterPlayers.some((player) => player.id === subOutId)
-    ? subOutId
-    : (liveStarterPlayers.find((player) => player.position !== "GK") ?? liveStarterPlayers[0])?.id ?? "";
-  const effectiveSubOut = liveStarterPlayers.find((player) => player.id === effectiveSubOutId) ?? null;
-  const subOutIsKeeper = effectiveSubOut?.position === "GK";
-  const compatibleSubBench = liveBenchPlayers.filter((player) =>
-    subOutIsKeeper ? player.position === "GK" : player.position !== "GK",
-  );
-  const effectiveSubInId = compatibleSubBench.some((player) => player.id === subInId)
-    ? subInId
-    : compatibleSubBench[0]?.id ?? "";
-  const effectiveSubIn = compatibleSubBench.find((player) => player.id === effectiveSubInId) ?? null;
-  const liveSubsUsed = liveSession?.subs ?? 0;
-  const liveSubBlockedReason = !liveSession
-    ? null
-    : liveSubsUsed >= 5
-      ? copy(language, "liveSubLimitReached")
-      : !effectiveSubOut
-        ? copy(language, "liveSubNoStarter")
-        : compatibleSubBench.length === 0
-          ? copy(language, subOutIsKeeper ? "liveSubNeedKeeper" : "liveSubNeedOutfield")
-          : null;
-
   const scoutingCap = club ? scoutCap(club.facilities.scoutCentre) : 0;
   const loadScoutDataset = useCallback(async (force = false) => {
     if (!force && scoutLoadStartedRef.current) return;
@@ -3682,16 +3015,15 @@ export default function ClubPreviewPage() {
     }
   };
 
-  const handleAssistantChange = async (field: "autoSquad" | "autoSubs", value: boolean) => {
+  const handleAssistantChange = async (value: boolean) => {
     if (busy || !club || !envelope) return;
     setBusy(true);
-    setPendingAction(`assistant:${field}`);
+    setPendingAction("assistant");
     setFeedback(null);
     try {
-      const next = await sendTrackedCommand({ type: "club.assistant", [field]: value }, envelope.revision);
+      const next = await sendTrackedCommand({ type: "club.assistant", autoSquad: value }, envelope.revision);
       applyEnvelope(next);
-      const label = field === "autoSquad" ? copy(language, "assistantAutoSquad") : copy(language, "assistantAutoSubs");
-      const announcement = copy(language, value ? "assistantOn" : "assistantOff", label);
+      const announcement = copy(language, value ? "assistantOn" : "assistantOff", copy(language, "assistantAutoSquad"));
       setAssistantAnnouncement(announcement);
       setFeedback({ kind: "success", text: announcement });
     } catch (error) {
@@ -3873,14 +3205,11 @@ export default function ClubPreviewPage() {
       }
       const record = next.state.club?.matches?.[0];
       const summary = record ? matchScoreline(record) : copy(language, "matchTitle");
-      const possession = record
-        ? ` · ${copy(language, "matchPossession")} ${Math.round(record.possession[0])}%–${Math.round(record.possession[1])}%`
-        : "";
       const announcement = copy(language, "matchFinished", summary);
-      setMatchResultAnnouncement(`${announcement}${possession}`);
+      setMatchResultAnnouncement(announcement);
       setFeedback({
         kind: "success",
-        text: `${announcement}${possession} · ${copy(language, "matchNoFunds")}`,
+        text: `${announcement} · ${copy(language, "matchNoFunds")}`,
       });
       focusMatchResult();
     } catch (error) {
@@ -4090,205 +3419,6 @@ export default function ClubPreviewPage() {
     await handleStartCup(cup.tier);
   };
 
-  const handleStartLive = async (tier: 0 | 1 | 2 | 3) => {
-    if (busy || !club || !envelope) return;
-    conditionBeforeRef.current = conditionSnapshotOf(club);
-    setMatchConditionSummary(null);
-    setBusy(true);
-    setPendingAction(`live-start:${tier}`);
-    setFeedback(null);
-    setLiveFinished(null);
-    setConfirmingAbandonLive(false);
-    try {
-      const next = await sendTrackedCommand({ type: "club.live.start", tier }, envelope.revision);
-      applyEnvelope(next);
-      setFeedback({
-        kind: "success",
-        text: copy(language, "liveStarted", copy(language, MATCH_TIER_NAME_KEY[tier])),
-      });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleAdvanceLive = async () => {
-    if (busy || !club || !envelope || !liveSession) return;
-    setBusy(true);
-    setPendingAction("live-advance");
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand({ type: "club.live.advance" }, envelope.revision);
-      applyEnvelope(next);
-      const nextLive = next.state.club?.live;
-      if (nextLive?.session) {
-        const session = nextLive.session;
-        const latest = session.events[session.events.length - 1];
-        const latestText = latest
-          ? ` · ${latest.minute}' ${copy(
-              language,
-              latest.kind === "goal" ? "replayGoal" : latest.kind === "save" ? "replaySave" : "replayChance",
-            )}${latest.scorer ? ` · ${latest.scorer}` : ""}`
-          : "";
-        setFeedback({
-          kind: "success",
-          text: `${copy(language, "liveBlockDone", session.block, session.score[0], session.score[1])}${latestText}`,
-        });
-      } else {
-        const record = next.state.club?.matches?.[0];
-        if (record) {
-          setLiveFinished({
-            score: record.score,
-            opponent: record.opponent.name,
-            home: record.teams?.home ?? club.name,
-            matchId: record.id,
-          });
-          setMatchResultAnnouncement(
-            copy(language, "matchFinished", `${record.teams?.home ?? club.name} ${record.score[0]} – ${record.score[1]} ${record.opponent.name}`),
-          );
-          focusMatchResult();
-          const nextClub = next.state.club;
-          const beforeCondition = conditionBeforeRef.current;
-          if (nextClub && beforeCondition) {
-            const after = conditionReport(nextClub);
-            setMatchConditionSummary({
-              before: beforeCondition.average,
-              after: after.startersAvgFitness,
-              newInjuries: nextClub.players
-                .filter((player) => isInjured(player) && !beforeCondition.injured.has(player.id))
-                .map((player) => player.name),
-              kind: "live",
-            });
-          }
-          setFeedback({
-            kind: "success",
-            text: copy(
-              language,
-              "liveFullTime",
-              record.teams?.home ?? club.name,
-              record.score[0],
-              record.score[1],
-              record.opponent.name,
-            ),
-          });
-        }
-      }
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleLiveTactic = async (tactic: ClubTactic) => {
-    if (busy || !club || !envelope || !liveSession || liveSession.home.tactic === tactic) return;
-    setBusy(true);
-    setPendingAction(`live-tactic:${tactic}`);
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand({ type: "club.live.tactic", tactic }, envelope.revision);
-      applyEnvelope(next);
-      setFeedback({
-        kind: "success",
-        text: copy(language, "liveTacticChanged", copy(language, TACTIC_NAME_KEY[tactic])),
-      });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleLiveFormation = async (formation: ClubFormation) => {
-    if (busy || !club || !envelope || !liveSession) return;
-    if ((liveSession.home.formation ?? club.formation) === formation) return;
-    setBusy(true);
-    setPendingAction(`live-formation:${formation}`);
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand({ type: "club.live.formation", formation }, envelope.revision);
-      applyEnvelope(next);
-      const announcement = copy(language, "liveFormationChanged", formation);
-      setLiveFormationAnnouncement(announcement);
-      setFeedback({ kind: "success", text: announcement });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleApplySuggestedTactic = async (tactic: ClubTactic) => {
-    if (busy || !club || !envelope || club.tactics.active === tactic) return;
-    setBusy(true);
-    setPendingAction(`suggested-tactic:${tactic}`);
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand({ type: "club.tactic", tactic }, envelope.revision);
-      applyEnvelope(next);
-      const announcement = copy(language, "tacticSuggestApplied", copy(language, TACTIC_NAME_KEY[tactic]));
-      setTacticSuggestAnnouncement(announcement);
-      setFeedback({ kind: "success", text: announcement });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleAbandonLive = async () => {
-    if (busy || !club || !envelope || !liveSession) return;
-    setBusy(true);
-    setPendingAction("live-abandon");
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand({ type: "club.live.abandon" }, envelope.revision);
-      applyEnvelope(next);
-      setConfirmingAbandonLive(false);
-      setLiveFinished(null);
-      setFeedback({ kind: "success", text: copy(language, "liveAbandoned") });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
-  const handleLiveSub = async () => {
-    if (busy || !club || !envelope || !liveSession || liveSubBlockedReason) return;
-    const outgoing = effectiveSubOut;
-    const incoming = effectiveSubIn;
-    if (!outgoing || !incoming) return;
-    setBusy(true);
-    setPendingAction("live-sub");
-    setFeedback(null);
-    try {
-      const next = await sendTrackedCommand(
-        { type: "club.live.sub", outId: outgoing.id, inId: incoming.id },
-        envelope.revision,
-      );
-      applyEnvelope(next);
-      setSubOutId("");
-      setSubInId("");
-      setFeedback({
-        kind: "success",
-        text: copy(language, "liveSubDone", outgoing.name, incoming.name),
-      });
-    } catch (error) {
-      handleCommandError(error, "commandFailed");
-    } finally {
-      setBusy(false);
-      setPendingAction("");
-    }
-  };
-
   const persistTabUrl = (next: ClubTab, anchor: string | null) => {
     try {
       const url = new URL(window.location.href);
@@ -4315,7 +3445,7 @@ export default function ClubPreviewPage() {
     persistTabUrl(next, null);
   };
 
-  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const handleTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
     const key = event.key;
     let nextIndex = index;
     if (key === "ArrowRight") nextIndex = (index + 1) % CLUB_TABS.length;
@@ -4327,11 +3457,6 @@ export default function ClubPreviewPage() {
     const next = CLUB_TABS[nextIndex];
     selectClubTab(next.id);
     window.setTimeout(() => document.getElementById(`club-tab-${next.id}`)?.focus(), 0);
-  };
-
-  const handleBaseNav = (event: { preventDefault: () => void }, sectionId: string) => {
-    event.preventDefault();
-    openClubSection(sectionId);
   };
 
   const openCelebrationReview = (trophy: ClubTrophy) => {
@@ -5987,7 +5112,6 @@ export default function ClubPreviewPage() {
           <p className="club-eyebrow">{`${copy(language, "matchTitle")} · ${copy(language, "matchTierLabel")}`}</p>
           <h2 id="club-match-heading">{copy(language, "matchTitle")}</h2>
         </div>
-        <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p>{copy(language, "matchIntro")}</p></details>
       </div>
       <p className="club-visually-hidden" role="status" aria-live="polite">{matchResultAnnouncement}</p>
       <div className="club-panel club-match-panel">
@@ -5999,25 +5123,13 @@ export default function ClubPreviewPage() {
                 <input
                   type="checkbox"
                   checked={assistant.autoSquad}
-                  onChange={(event) => void handleAssistantChange("autoSquad", event.target.checked)}
+                  onChange={(event) => void handleAssistantChange(event.target.checked)}
                   disabled={busy}
                   data-assistant-auto-squad
                 />
                 <span>
                   <b>{copy(language, "assistantAutoSquad")}</b>
                   <small>{copy(language, "assistantSettingsHint")}</small>
-                </span>
-              </label>
-              <label className="club-assistant-toggle">
-                <input
-                  type="checkbox"
-                  checked={assistant.autoSubs}
-                  onChange={(event) => void handleAssistantChange("autoSubs", event.target.checked)}
-                  disabled={busy}
-                  data-assistant-auto-subs
-                />
-                <span>
-                  <b>{copy(language, "assistantAutoSubs")}</b>
                 </span>
               </label>
               <p className="club-assistant-note">{copy(language, "assistantNote")}</p>
@@ -6032,48 +5144,7 @@ export default function ClubPreviewPage() {
             </p>
           ) : null}
         </div>
-        <details className="club-new-match" id="club-new-match-controls">
-          <summary>{copy(language, "newMatch")}</summary>
-          {tacticSuggestion ? (
-            <div
-              className={`club-tactic-suggest${tacticSuggestion.fallback ? " is-fallback" : ""}`}
-              data-tactic-suggest
-              data-tactic-suggested={tacticSuggestion.tactic}
-              data-tactic-active={club?.tactics.active ?? ""}
-            >
-              <div className="club-tactic-suggest-head">
-                <b>{copy(language, "tacticSuggestTitle")}</b>
-                <span>
-                  {tacticSuggestion.opponentName
-                    ? copy(language, "tacticSuggestOpponent", tacticSuggestion.opponentName)
-                    : copy(language, "tacticSuggestFallback")}
-                </span>
-              </div>
-              <p className="club-tactic-suggest-reason">
-                <b>{copy(language, TACTIC_NAME_KEY[tacticSuggestion.tactic])}</b>
-                {tacticSuggestion.fallback
-                  ? ""
-                  : ` — ${briefingText(language, tacticSuggestion.reason, BRIEFING_REASON_ZH)}`}
-              </p>
-              <div className="club-tactic-suggest-actions">
-                <button
-                  type="button"
-                  className="club-button club-button-primary"
-                  onClick={() => void handleApplySuggestedTactic(tacticSuggestion.tactic)}
-                  disabled={busy || club?.tactics.active === tacticSuggestion.tactic}
-                >
-                  {pendingAction === `suggested-tactic:${tacticSuggestion.tactic}`
-                    ? copy(language, "briefingApplying")
-                    : club?.tactics.active === tacticSuggestion.tactic
-                      ? copy(language, "briefingAlready")
-                      : copy(language, "tacticSuggestApply")}
-                </button>
-                <span className="club-tactic-suggest-announcement" role="status" aria-live="polite">
-                  {tacticSuggestAnnouncement}
-                </span>
-              </div>
-            </div>
-          ) : null}
+
         <fieldset className="club-match-controls" disabled={busy}>
           <legend>{copy(language, "matchTierLabel")}</legend>
           <div className="club-match-tiers">
@@ -6102,7 +5173,6 @@ export default function ClubPreviewPage() {
             <span className="club-note">{copy(language, "matchNoFunds")}</span>
           </div>
         </fieldset>
-        </details>
 
         {latestMatch ? (
           <div className="club-match-result club-match-hero" role="status" aria-live="polite">
@@ -6111,196 +5181,44 @@ export default function ClubPreviewPage() {
               <span className="club-match-tier">{copy(language, MATCH_TIER_NAME_KEY[matchTierIndex(latestMatch.tier)])}</span>
             </div>
             <div className="club-match-scoreboard">
-              <span className="club-match-side">
-                <span className="club-match-tag">{copy(language, "matchHomeShort")}</span>
-                <b>{club.name}</b>
-              </span>
+              <span className="club-match-side"><b>{latestMatch.teams.home}</b></span>
               <span className="club-match-score">{`${latestMatch.score[0]} – ${latestMatch.score[1]}`}</span>
-              <span className="club-match-side club-match-side-away">
-                <span className="club-match-tag">{copy(language, "matchAwayShort")}</span>
-                <b>{latestMatch.opponent.name}</b>
-              </span>
+              <span className="club-match-side club-match-side-away"><b>{latestMatch.teams.away}</b></span>
             </div>
             <p className="club-match-when">
               <time dateTime={latestMatch.at}>{dateTime(language, latestMatch.at)}</time>
             </p>
-            <div className="club-match-stats">
-              <div className="club-match-stat">
-                <span>{copy(language, "matchPossession")}</span>
-                <div className="club-possession-bar" aria-hidden="true">
-                  <i style={{ width: `${Math.max(0, Math.min(100, latestMatch.possession[0]))}%` }} />
-                </div>
-                <b>{`${Math.round(latestMatch.possession[0])}% – ${Math.round(latestMatch.possession[1])}%`}</b>
-              </div>
-              <div className="club-match-stat">
-                <span>{copy(language, "matchShots")}</span>
-                <b>{`${latestMatch.shots[0]} (${latestMatch.onTarget[0]}) – ${latestMatch.shots[1]} (${latestMatch.onTarget[1]})`}</b>
-              </div>
-            </div>
-            <div className="club-match-hero-actions">
-              <button type="button" className="club-button club-button-primary club-match-hero-watch" onClick={() => setLatestWatchOpen(true)}>
-                {`▶ ${copy(language, "watchHero")}`}
-              </button>
-              <button
-                type="button"
-                className="club-button club-button-secondary club-match-hero-secondary"
-                onClick={() => {
-                  setLatestReplayOpen(true);
-                  window.setTimeout(() => document.getElementById("club-replay-panel")?.scrollIntoView({ block: "start", behavior: "smooth" }), 140);
-                }}
-              >
-                {copy(language, "matchTextReplay")}
-              </button>
-              <button
-                type="button"
-                className="club-button club-button-secondary club-match-hero-secondary"
-                onClick={() => {
-                  const details = document.getElementById("club-new-match-controls");
-                  if (details instanceof HTMLDetailsElement) details.open = true;
-                  details?.scrollIntoView({ block: "start", behavior: "smooth" });
-                }}
-              >
-                {copy(language, "matchPlayAgain")}
-              </button>
-            </div>
-            {matchConditionSummary ? (
-              <div
-                className="club-condition-summary"
-                role="status"
-                aria-live="polite"
-                data-condition-summary
-                data-condition-before={matchConditionSummary.before}
-                data-condition-after={matchConditionSummary.after}
-                data-condition-new-injuries={matchConditionSummary.newInjuries.join("|")}
-                data-condition-kind={matchConditionSummary.kind}
-              >
-                <div className="club-condition-summary-head">
-                  <b>{copy(language, "conditionSummaryTitle")}</b>
-                  <span>{copy(language, matchConditionSummary.kind === "quick" ? "conditionSummaryQuick" : "conditionSummaryLive")}</span>
-                </div>
-                <div className="club-condition-summary-row">
-                  <span>{copy(language, "conditionSummaryAverage", matchConditionSummary.before, matchConditionSummary.after)}</span>
-                  <ConditionBar fitness={matchConditionSummary.after} injury={0} compact language={language} />
-                </div>
-                <p className={matchConditionSummary.newInjuries.length ? "is-injured" : undefined}>
-                  {matchConditionSummary.newInjuries.length
-                    ? copy(language, "conditionSummaryNewInjuries", matchConditionSummary.newInjuries.join(" · "))
-                    : copy(language, "conditionSummaryNoInjuries")}
-                </p>
-              </div>
-            ) : null}
-            <details className="club-section-more">
-              <summary>{copy(language, "moreDetails")}</summary>
-            <dl className="club-match-explanation">
-              <div>
-                <dt>{copy(language, "matchDominant")}</dt>
-                <dd>
-                  <span
-                    className={`club-line-dot club-line-dot-${latestMatch.explanation.dominantLine.toLowerCase()}`}
-                    aria-hidden="true"
-                  />
-                  <span>{explainedLineLabel(language, latestMatch.explanation.dominantLine)}</span>
-                  <span className="club-pill club-pill-ok">
-                    {latestMatch.explanation.dominantSide === "home"
-                      ? club.shortName
-                      : latestMatch.explanation.dominantSide === "away"
-                        ? latestMatch.opponent.shortName
-                        : copy(language, "matchEven")}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt>{copy(language, "matchChances")}</dt>
-                <dd>{explainText(language, latestMatch.explanation.chancesFrom)}</dd>
-              </div>
-              <div>
-                <dt>{copy(language, "matchConceded")}</dt>
-                <dd>{explainText(language, latestMatch.explanation.concededBecause)}</dd>
-              </div>
-              <div>
-                <dt>{copy(language, "matchTacticNote")}</dt>
-                <dd>{explainText(language, latestMatch.explanation.tacticNote)}</dd>
-              </div>
-              <div>
-                <dt>{copy(language, "matchNextStep")}</dt>
-                <dd>{explainText(language, latestMatch.explanation.nextStep)}</dd>
-              </div>
-            </dl>
-            </details>
-            {latestMatchReport ? (
-              <div className="club-match-ratings" aria-live="polite">
-                <div className="club-match-ratings-head">
-                  <h4 className="club-subheading">{copy(language, "matchPlayerRatings")}</h4>
-                  <span className="club-note">{copy(language, "matchRatingsNote")}</span>
-                </div>
-                <div className="club-table-wrap">
-                  <table className="club-table club-ratings-table">
-                    <caption className="club-visually-hidden">{copy(language, "matchPlayerRatings")}</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">{copy(language, "columnPlayer")}</th>
-                        <th scope="col">{copy(language, "columnLine")}</th>
-                        <th scope="col">{copy(language, "columnGoals")}</th>
-                        <th scope="col">{copy(language, "columnRating")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {latestMatchReport.playerRatings.home.map((row) => {
-                        const top = row.rating === latestMatchTopRating;
-                        return (
-                          <tr key={`${row.name}:${row.line}`} className={top ? "is-top" : undefined}>
-                            <td data-col="name" data-label={copy(language, "columnPlayer")}>
-                              <span className="club-player-name">{row.name}</span>
-                            </td>
-                            <td data-col="line" data-label={copy(language, "columnLine")}>
-                              <span className="club-line">
-                                <i
-                                  className={`club-line-dot club-line-dot-${row.line.toLowerCase()}`}
-                                  aria-hidden="true"
-                                />
-                                {row.line}
-                              </span>
-                            </td>
-                            <td data-col="goals" data-label={copy(language, "columnGoals")}>
-                              {row.goals}
-                            </td>
-                            <td data-col="rating" data-label={copy(language, "columnRating")}>
-                              <b className="club-rating-badge">{row.rating.toFixed(1)}</b>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {!latestMatchReportMatches ? (
-                  <p className="club-note">{copy(language, "matchRatingsMismatch")}</p>
-                ) : null}
-              </div>
-            ) : (
-              <p className="club-note">{copy(language, "matchRatingsUnavailable")}</p>
-            )}
-            <MatchReplay
-              key={latestMatch.id}
-              record={latestMatch}
-              language={language}
-              homeName={club.name}
-              awayName={latestMatch.opponent.name}
-              homeColor={club.colours.primary}
-              awayColor={club.colours.secondary}
-              homeShortName={club.shortName}
-              awayShortName={latestMatch.opponent.shortName}
-              homeTrophies={club.trophies?.length ?? 0}
-              decor={resolveDecor(club)}
-              watchOpen={latestWatchOpen}
-              onWatchOpenChange={setLatestWatchOpen}
-              replayOpen={latestReplayOpen}
-              onReplayOpenChange={setLatestReplayOpen}
-            />
           </div>
         ) : (
           <p className="club-match-empty">{copy(language, "matchEmpty")}</p>
         )}
+
+        {matchConditionSummary ? (
+          <div
+            className="club-condition-summary"
+            role="status"
+            aria-live="polite"
+            data-condition-summary
+            data-condition-before={matchConditionSummary.before}
+            data-condition-after={matchConditionSummary.after}
+            data-condition-new-injuries={matchConditionSummary.newInjuries.join("|")}
+            data-condition-kind={matchConditionSummary.kind}
+          >
+            <div className="club-condition-summary-head">
+              <b>{copy(language, "conditionSummaryTitle")}</b>
+              <span>{copy(language, matchConditionSummary.kind === "quick" ? "conditionSummaryQuick" : "conditionSummaryLive")}</span>
+            </div>
+            <div className="club-condition-summary-row">
+              <span>{copy(language, "conditionSummaryAverage", matchConditionSummary.before, matchConditionSummary.after)}</span>
+              <ConditionBar fitness={matchConditionSummary.after} injury={0} compact language={language} />
+            </div>
+            <p className={matchConditionSummary.newInjuries.length ? "is-injured" : undefined}>
+              {matchConditionSummary.newInjuries.length
+                ? copy(language, "conditionSummaryNewInjuries", matchConditionSummary.newInjuries.join(" · "))
+                : copy(language, "conditionSummaryNoInjuries")}
+            </p>
+          </div>
+        ) : null}
 
         <div className="club-match-history" aria-live="polite">
           <h3 className="club-subheading">{copy(language, "matchRecent")}</h3>
@@ -6322,319 +5240,6 @@ export default function ClubPreviewPage() {
             <p className="club-note">{copy(language, "matchEmpty")}</p>
           )}
         </div>
-
-        <details className="club-new-match club-live-details" open={Boolean(liveSession)}>
-          <summary>{copy(language, "liveTitle")}</summary>
-        <div className="club-live-panel">
-          <div className="club-table-heading">
-            <h3>{copy(language, "liveTitle")}</h3>
-            <span className="club-muted">{copy(language, "liveParity")}</span>
-          </div>
-          <details className="club-section-more"><summary>{copy(language, "moreDetails")}</summary><p className="club-note">{copy(language, "liveIntro")}</p></details>
-          {liveSession ? (
-            <>
-              {liveBriefing ? (
-                <section className="club-briefing" aria-labelledby="club-briefing-title">
-                  <div className="club-briefing-head">
-                    <div className="club-briefing-opponent">
-                      <p className="club-eyebrow">{copy(language, "briefingTitle")}</p>
-                      <h4 className="club-briefing-title" id="club-briefing-title">{liveBriefing.opponent.name}</h4>
-                      <p className="club-briefing-sub">
-                        {`${copy(language, "briefingTactic")}: `}
-                        <b>{copy(language, TACTIC_NAME_KEY[liveBriefing.opponent.tactic])}</b>
-                      </p>
-                    </div>
-                    <p className="club-briefing-headline">
-                      {briefingText(language, liveBriefing.headline, BRIEFING_HEADLINE_ZH)}
-                    </p>
-                  </div>
-                  <div className="club-briefing-comparison">
-                    <div className="club-briefing-compare-head">
-                      <span>{copy(language, "briefingCompare")}</span>
-                      <span>{`${copy(language, "briefingOurs")} / ${copy(language, "briefingTheirs")}`}</span>
-                    </div>
-                    {liveBriefing.comparison.map((row) => (
-                      <div className={`club-briefing-line is-${row.edge}`} key={row.line}>
-                        <b className="club-briefing-line-code">{row.line}</b>
-                        <span className="club-briefing-line-track club-briefing-line-ours">
-                          <i style={{ width: `${Math.max(0, Math.min(100, row.ours))}%` }} />
-                          <em>{row.ours.toFixed(1)}</em>
-                        </span>
-                        <span className="club-briefing-line-track club-briefing-line-theirs">
-                          <i style={{ width: `${Math.max(0, Math.min(100, row.theirs))}%` }} />
-                          <em>{row.theirs.toFixed(1)}</em>
-                        </span>
-                        <span className={`club-briefing-line-diff is-${row.edge}`}>
-                          {`${row.diff > 0 ? "+" : ""}${row.diff.toFixed(1)}`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="club-briefing-notes">
-                    <p className={`club-briefing-caution is-${liveBriefing.weakest.edge}`}>
-                      <b>{copy(language, "briefingWeakest")}</b>
-                      {` ${copy(language, "briefingCaution", liveBriefing.weakest.line, liveBriefing.weakest.ours.toFixed(1), liveBriefing.weakest.theirs.toFixed(1))}`}
-                    </p>
-                    <p className="club-briefing-suggest">
-                      <b>{copy(language, "briefingSuggested")}</b>
-                      {` ${copy(language, TACTIC_NAME_KEY[liveBriefing.suggestedTactic])} — `}
-                      {briefingText(language, liveBriefing.tacticReason, BRIEFING_REASON_ZH)}
-                    </p>
-                  </div>
-                  <div className="club-briefing-actions">
-                    <button
-                      type="button"
-                      className="club-button club-button-primary"
-                      onClick={() => void handleLiveTactic(liveBriefing.suggestedTactic)}
-                      disabled={busy || liveSession.home.tactic === liveBriefing.suggestedTactic}
-                    >
-                      {pendingAction === `live-tactic:${liveBriefing.suggestedTactic}`
-                        ? copy(language, "briefingApplying")
-                        : liveSession.home.tactic === liveBriefing.suggestedTactic
-                          ? copy(language, "briefingAlready")
-                          : copy(language, "briefingApply")}
-                    </button>
-                    <span className="club-muted">
-                      {copy(language, "liveTacticChanged", copy(language, TACTIC_NAME_KEY[liveBriefing.suggestedTactic]))}
-                    </span>
-                  </div>
-                </section>
-              ) : null}
-              <div className="club-live-head">
-                <span className="club-pill club-pill-active">{copy(language, "liveBlock", liveSession.block, 18)}</span>
-                <span className="club-live-score">
-                  {`${liveSession.home.name} ${liveSession.score[0]} – ${liveSession.score[1]} ${liveSession.away.name}`}
-                </span>
-                <span className="club-muted">
-                  {`${copy(language, "liveCurrentTactic")}: ${copy(language, TACTIC_NAME_KEY[liveSession.home.tactic])}`}
-                </span>
-                <span className="club-muted" data-live-formation>
-                  {`${copy(language, "liveCurrentFormation")}: ${liveSession.home.formation ?? club.formation}`}
-                </span>
-              </div>
-              <div className="club-live-progress" aria-hidden="true">
-                <i style={{ width: `${Math.round((liveSession.block / 18) * 100)}%` }} />
-              </div>
-              <div className="club-live-stats">
-                <span>
-                  {`${copy(language, "livePossession")} ${Math.round(liveSession.possession[0])}% – ${Math.round(liveSession.possession[1])}%`}
-                </span>
-                <span>
-                  {`${copy(language, "liveShots")} ${liveSession.shots[0]} (${liveSession.onTarget[0]}) – ${liveSession.shots[1]} (${liveSession.onTarget[1]})`}
-                </span>
-              </div>
-              <div className="club-live-controls">
-                <button
-                  type="button"
-                  className="club-button club-button-primary"
-                  onClick={() => void handleAdvanceLive()}
-                  disabled={busy}
-                >
-                  {pendingAction === "live-advance" ? copy(language, "liveAdvancing") : copy(language, "liveNextBlock")}
-                </button>
-                <label className="club-field club-field-inline club-live-tactic">
-                  <span>{copy(language, "liveCurrentTactic")}</span>
-                  <select
-                    value={liveSession.home.tactic}
-                    onChange={(event) => void handleLiveTactic(event.target.value as ClubTactic)}
-                    disabled={busy}
-                  >
-                    {CLUB_TACTICS.map((tactic) => (
-                      <option key={tactic} value={tactic}>
-                        {copy(language, TACTIC_NAME_KEY[tactic])}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="club-field club-field-inline club-live-formation">
-                  <span>{copy(language, "liveCurrentFormation")}</span>
-                  <select
-                    value={(liveSession.home.formation ?? club.formation) as ClubFormation}
-                    onChange={(event) => void handleLiveFormation(event.target.value as ClubFormation)}
-                    disabled={busy}
-                    data-live-formation-select
-                  >
-                    {(Object.keys(CLUB_FORMATIONS) as ClubFormation[]).map((formation) => (
-                      <option key={formation} value={formation}>
-                        {formation}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {confirmingAbandonLive ? (
-                  <span className="club-live-abandon-confirm">
-                    <button
-                      type="button"
-                      className="club-button club-button-secondary"
-                      onClick={() => void handleAbandonLive()}
-                      disabled={busy}
-                    >
-                      {pendingAction === "live-abandon"
-                        ? copy(language, "liveAbandoning")
-                        : copy(language, "liveAbandonConfirmAction")}
-                    </button>
-                    <button
-                      type="button"
-                      className="club-button club-button-secondary"
-                      onClick={() => setConfirmingAbandonLive(false)}
-                      disabled={busy}
-                    >
-                      {copy(language, "liveCancel")}
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    className="club-button club-button-secondary"
-                    onClick={() => setConfirmingAbandonLive(true)}
-                    disabled={busy}
-                  >
-                    {copy(language, "liveAbandon")}
-                  </button>
-                )}
-              </div>
-              <p className="club-live-formation-announcement" role="status" aria-live="polite">
-                {liveFormationAnnouncement}
-              </p>
-              <div className="club-live-subs">
-                <div className="club-live-subs-head">
-                  <h4 className="club-subheading">{copy(language, "liveSubsTitle")}</h4>
-                  <span className="club-pill">{copy(language, "liveSubsCounter", liveSubsUsed, 5)}</span>
-                </div>
-                <div className="club-live-subs-grid">
-                  <label className="club-field club-live-sub-field">
-                    <span>{copy(language, "liveSubOutLabel")}</span>
-                    <select
-                      value={effectiveSubOutId}
-                      onChange={(event) => setSubOutId(event.target.value)}
-                      disabled={busy || liveStarterPlayers.length === 0}
-                    >
-                      {liveStarterPlayers.map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {`${player.name} · ${player.position}`}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="club-field club-live-sub-field">
-                    <span>{copy(language, "liveSubInLabel")}</span>
-                    <select
-                      value={effectiveSubInId}
-                      onChange={(event) => setSubInId(event.target.value)}
-                      disabled={busy || compatibleSubBench.length === 0}
-                    >
-                      {compatibleSubBench.map((player) => (
-                        <option key={player.id} value={player.id}>
-                          {`${player.name} · ${player.position}`}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    className="club-button club-button-secondary club-live-sub-button"
-                    onClick={() => void handleLiveSub()}
-                    disabled={busy || liveSubBlockedReason !== null}
-                  >
-                    {pendingAction === "live-sub" ? copy(language, "liveSubBusy") : copy(language, "liveSubButton")}
-                  </button>
-                </div>
-                {liveSubBlockedReason ? <p className="club-note club-live-sub-reason">{liveSubBlockedReason}</p> : null}
-              </div>
-              <div className="club-live-events" ref={liveEventsRef}>
-                <h4 className="club-subheading">{copy(language, "liveEvents")}</h4>
-                {liveSession.events.length ? (
-                  <ol className="club-replay-events">
-                    {liveSession.events.map((event, index) => {
-                      const latest = index === liveSession.events.length - 1;
-                      return (
-                        <li
-                          key={`${event.minute}:${event.side}:${event.kind}:${index}`}
-                          className={`club-replay-comment${latest ? " is-current" : ""}`}
-                        >
-                          <span className="club-replay-comment-minute">{`${event.minute}'`}</span>
-                          <span className={`club-replay-comment-kind is-${event.kind}`}>
-                            {copy(language, replayKindKey(event.kind))}
-                          </span>
-                          <span className="club-replay-comment-body">
-                            <b>{event.side === "home" ? liveSession.home.name : liveSession.away.name}</b>
-                            {event.kind === "sub"
-                              ? ` · ${event.out ?? "—"} → ${event.scorer ?? "—"}`
-                              : event.scorer
-                                ? ` · ${event.scorer}`
-                                : ""}
-                            {event.label && event.kind !== "goal" && event.kind !== "sub" ? ` · ${event.label}` : ""}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                ) : (
-                  <p className="club-note">{copy(language, "liveNoEvents")}</p>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              {liveFinished ? (
-                <div className="club-live-finished" role="status" aria-live="polite">
-                  <b>{copy(language, "liveFinishedTitle")}</b>
-                  <span>
-                    {copy(
-                      language,
-                      "liveFinalScore",
-                      liveFinished.home,
-                      liveFinished.score[0],
-                      liveFinished.score[1],
-                      liveFinished.opponent,
-                    )}
-                  </span>
-                  <a
-                    className="club-button club-button-secondary"
-                    href="#club-match"
-                    onClick={(event) => handleBaseNav(event, "club-match")}
-                  >
-                    {copy(language, "liveViewResult")}
-                  </a>
-                </div>
-              ) : null}
-              <fieldset className="club-league-tiers" disabled={busy}>
-                <legend>{copy(language, "liveTierLabel")}</legend>
-                <div className="club-match-tiers">
-                  {([0, 1, 2, 3] as const).map((tier) => (
-                    <button
-                      key={tier}
-                      type="button"
-                      className={`club-tier-button${liveTier === tier ? " is-selected" : ""}`}
-                      aria-pressed={liveTier === tier}
-                      onClick={() => setLiveTier(tier)}
-                    >
-                      <b>{copy(language, MATCH_TIER_NAME_KEY[tier])}</b>
-                      <small className="club-tier-hint">{copy(language, MATCH_TIER_DESC_KEY[tier])}</small>
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <div className="club-match-actions">
-                <button
-                  type="button"
-                  className="club-button club-button-primary"
-                  onClick={() => void handleStartLive(liveTier)}
-                  disabled={busy}
-                >
-                  {pendingAction?.startsWith("live-start")
-                    ? copy(language, "liveStarting")
-                    : copy(language, "liveStart")}
-                </button>
-                <span className="club-note">{copy(language, "liveQuickSimNote")}</span>
-              </div>
-            </>
-          )}
-          <p className="club-live-live" role="status" aria-live="polite">
-            {liveAnnouncement}
-          </p>
-        </div>
-        </details>
       </div>
     </section>
   ) : null;
@@ -6981,15 +5586,6 @@ export default function ClubPreviewPage() {
                 <span>{latestMatch.opponent.name}</span>
               </div>
               <p className="club-overview-meta">{`${copy(language, MATCH_TIER_NAME_KEY[matchTierIndex(latestMatch.tier)])} · ${dateTime(language, latestMatch.at)}`}</p>
-              {(() => {
-                const bars = compareBars(latestMatch.possession[0], latestMatch.possession[1], 100);
-                return (
-                  <div className="club-overview-possession" role="img" aria-label={`${copy(language, "matchPossession")} ${Math.round(latestMatch.possession[0])}% – ${Math.round(latestMatch.possession[1])}%`}>
-                    <i style={{ width: `${bars.oursPct}%` }} />
-                    <i style={{ width: `${bars.theirsPct}%` }} />
-                  </div>
-                );
-              })()}
               <button type="button" className="club-button club-button-secondary" onClick={() => openClubSection("club-match")}>
                 {copy(language, "overviewViewMatch")}
               </button>

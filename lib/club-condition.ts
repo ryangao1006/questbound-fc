@@ -7,8 +7,8 @@ import {setClubLineup,type ClubState} from './club-state.ts';
  * and the default assistant keeps the eleven legal and can auto-substitute.
  * All rules are pure and deterministic; the UI only reads them.
  */
-export type ClubAssistant={autoSquad:boolean;autoSubs:boolean};
-export const DEFAULT_ASSISTANT:ClubAssistant={autoSquad:true,autoSubs:true};
+export type ClubAssistant={autoSquad:boolean};
+export const DEFAULT_ASSISTANT:ClubAssistant={autoSquad:true};
 export const FITNESS_MAX=100;
 export const FITNESS_UNAVAILABLE=35;
 function hash(text:string){let value=2166136261;for(const character of text){value^=character.charCodeAt(0);value=Math.imul(value,16777619)}return value>>>0||1}
@@ -70,21 +70,4 @@ export function ensureLegalLineup(club:ClubState):{club:ClubState;changed:boolea
  if(legal&&(allAvailable||!assistant.autoSquad))return {club,changed:false};
  const next=setClubLineup(club,club.formation,pickLegalLineup(club));
  return {club:next,changed:true};
-}
-/** Most useful substitution for the assistant: worst starter vs best rested bench. */
-export function assistantSubstitution(club:ClubState):{outId:string;inId:string}|null{
- const byId=new Map(club.players.map(player=>[player.id,player]));
- const starters=club.lineup.map(id=>byId.get(id)).filter((player):player is ClubPlayer=>Boolean(player));
- const bench=club.players.filter(player=>!club.lineup.includes(player.id));
- const outgoing=[...starters].filter(player=>player.position!=='GK').sort((a,b)=>fitnessOf(a)-fitnessOf(b)||a.ovr-b.ovr)[0];
- if(!outgoing)return null;
- const incoming=bench.filter(player=>isAvailable(player)&&player.position!=='GK').sort((a,b)=>fitnessOf(b)-fitnessOf(a)||b.ovr-a.ovr)[0];
- if(!incoming)return null;
- if(fitnessOf(incoming)<=fitnessOf(outgoing))return null;
- return {outId:outgoing.id,inId:incoming.id};
-}
-/** Auto-substitution for a live match when the assistant is on. */
-export function autoSubstitution(club:ClubState,usedSubs:number):{outId:string;inId:string}|null{
- if(!assistantOf(club).autoSubs||usedSubs>=5)return null;
- return assistantSubstitution(club);
 }

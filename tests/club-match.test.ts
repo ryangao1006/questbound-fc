@@ -108,15 +108,15 @@ test('player ratings list every outfield starter and reward goals',()=>{
  if(goals.length){const scorer=goals[0].scorer!;const row=report.playerRatings.home.find(entry=>entry.name===scorer);assert(row);assert(row!.goals>=1);assert(row!.rating>=6)}
 });
 
-test('a saved match keeps its timeline so it can be replayed without rebuilding',()=>{
+test('a saved match keeps only the final score and the teams',()=>{
  const state=fullState();
- const played=reduceCommand(state,{type:'club.match',id:'replay-op',tier:2} as never,new Date('2026-11-14T00:00:00Z'));
+ const played=reduceCommand(state,{type:'club.match',id:'score-op',tier:2} as never,new Date('2026-11-14T00:00:00Z'));
  const record=played.club!.matches![0];
- assert(record.events&&record.events.length>0);
- assert.equal(record.teams.home.endsWith('FC')||record.teams.home.length>0,true);
- assert.equal(record.events!.filter(event=>event.kind==='goal'&&event.side==='home').length,record.score[0]);
- assert.equal(record.events!.filter(event=>event.kind==='goal'&&event.side==='away').length,record.score[1]);
- for(const event of record.events!){assert(event.minute>=1&&event.minute<=90);assert(event.homeName.length>0&&event.awayName.length>0)}
+ assert.equal(record.score.length,2);
+ assert(record.teams.home.length>0&&record.teams.away.length>0);
+ assert(record.opponent.name.length>0);
+ assert(!('events' in record)&&!('timeline' in record)&&!('ballTrack' in record));
+ assert.equal(record.tier,2);
 });
 
 test('playing block by block without decisions equals the quick simulation exactly',()=>{
@@ -180,12 +180,4 @@ test('the spatial path is part of the live/quick parity and survives JSON',()=>{
  assert.deepEqual(live.path,quick.path);
  const restored=JSON.parse(JSON.stringify(live));
  assert.deepEqual(restored.path,quick.path);
-});
-
-test('a saved match stores its spatial path for the 3D watch',()=>{
- const state=fullState();
- const played=reduceCommand(state,{type:'club.match',id:'spatial-op',tier:1} as never,new Date('2026-11-14T00:00:00Z'));
- const record=played.club!.matches![0];
- assert(record.path&&record.path.length===54);
- assert(record.events!.every(event=>typeof event.x==='number'&&typeof event.y==='number'));
 });

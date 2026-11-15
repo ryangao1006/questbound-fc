@@ -1,6 +1,6 @@
 # UX audit — club game (local app + static demo)
 
-Scope: the hosted planner shell, `/club` (four tabs), `/club/base` (3D base + room previews), the static demo on GitHub Pages, at 1440×900 and 390×844. Findings are based on browser runs in this workspace, not on user interviews.
+Scope: the hosted planner shell, `/club` (four tabs), `/club/base` (3D base + room previews), the static demo on GitHub Pages, at 1440×900 and 390×844. **Note:** the football 3D match viewer, replay, storyboard and live commands were removed in the 4.0 formal edition; the audit findings below about match presentation are historical. Findings are based on browser runs in this workspace, not on user interviews.
 
 ## What already works well
 

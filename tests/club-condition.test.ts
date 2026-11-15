@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState} from '../lib/model.ts';
 import {reduceCommand} from '../lib/domain.ts';
-import {afterMatch,assistantOf,assistantSubstitution,autoSubstitution,conditionReport,ensureLegalLineup,fitnessOf,isAvailable,isInjured,pickLegalLineup,DEFAULT_ASSISTANT} from '../lib/club-condition.ts';
+import {afterMatch,assistantOf,conditionReport,ensureLegalLineup,fitnessOf,isAvailable,isInjured,pickLegalLineup,DEFAULT_ASSISTANT} from '../lib/club-condition.ts';
 import type {ClubState} from '../lib/club-state.ts';
 
 const stateOf=()=>{const state=structuredClone(initialState());state.economy.sources.push({id:'match:qa',kind:'match',amount:5000,eligible:5000,spent:0,at:new Date().toISOString()});return reduceCommand(state,{type:'club.create',id:'op',name:'Northbridge FC',shortName:'NBR',formation:'4-3-3'} as never)};
@@ -89,16 +89,4 @@ test('a quick match auto-repairs the eleven and leaves everyone fitter or tired'
  const conditions=played.club!.players.map(player=>fitnessOf(player));
  assert(conditions.every(value=>value>=0&&value<=100));
  assert(played.club!.matches!.length===1);
-});
-
-test('the assistant can suggest and execute a substitution only with a fit bench',()=>{
- const state=stateOf(),out=state.club!.lineup[3];
- const tired=withPlayer(state,out,{fitness:40}).club!;
- const swap=assistantSubstitution(tired);
- if(swap){assert.equal(swap.outId,out);assert.notEqual(swap.inId,out)}
- assert.equal(autoSubstitution({...tired,assistant:{autoSquad:true,autoSubs:false}},0),null);
- assert.equal(autoSubstitution(tired,5),null);
- const fresh=withPlayer(state,state.club!.lineup[3],{fitness:100}).club!;
- const noSwap=assistantSubstitution(fresh);
- assert(noSwap===null||noSwap.inId.length>0);
 });

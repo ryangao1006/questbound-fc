@@ -8,7 +8,7 @@ import type {PlannerState} from './model.ts';
  * capped at three suggestions so the overview stays short.
  */
 export type ClubAction={
- id:'live'|'league'|'cup'|'train'|'tactic'|'facility'|'sign'|'friendly'|'create';
+ id:'league'|'cup'|'train'|'tactic'|'facility'|'sign'|'friendly'|'create';
  title:string;titleZh:string;detail:string;detailZh:string;
  href:string;urgent:boolean;
 };
@@ -16,7 +16,6 @@ export function nextClubActions(state:PlannerState,limit=3):ClubAction[]{
  const club=state.club;
  if(!club)return [{id:'create',title:'Create your club',titleZh:'创建俱乐部',detail:'Name it, pick colours and get your first squad.',detailZh:'起个名字、选好配色，领取第一批球员。',href:'/club#club-create',urgent:true}];
  const actions:ClubAction[]=[],funds=clubFunds(state.economy);
- if(club.live)actions.push({id:'live',title:'Continue the live match',titleZh:'继续临场指挥',detail:'A match is paused at the current minute.',detailZh:'有一场比赛正停在当前分钟。',href:'/club#club-match',urgent:true});
  if(!club.season)actions.push({id:'league',title:'Start a league season',titleZh:'开始联赛赛季',detail:'Fourteen rounds, promotion and relegation.',detailZh:'14 轮联赛，有升级和降级。',href:'/club#club-league',urgent:actions.length===0});
  else if(!club.season.finished&&club.season.round<14)actions.push({id:'league',title:`Play league round ${club.season.round+1}`,titleZh:`进行联赛第 ${club.season.round+1} 轮`,detail:'Each round updates the table.',detailZh:'每轮都会更新积分榜。',href:'/club#club-league',urgent:false});
  if(!club.cup)actions.push({id:'cup',title:'Enter the challenge cup',titleZh:'参加挑战杯',detail:'Four clubs, two rounds, fictional opponents.',detailZh:'四支球队两轮，虚构对手。',href:'/club#club-cup',urgent:false});
@@ -32,7 +31,7 @@ export function clubHomeSummary(state:PlannerState){
  const club=state.club;
  if(!club)return {headline:'',headlineZh:'',detail:'',detailZh:'',next:'create' as const};
  const ratings=clubRatings(club),funds=clubFunds(state.economy);
- const next=club.live?'live':!club.season?'league':!club.season.finished?'league':!club.cup||!club.cup.finished?'cup':'friendly';
+ const next=!club.season?'league':!club.season.finished?'league':!club.cup||!club.cup.finished?'cup':'friendly';
  return {headline:`${club.name} · OVR ${ratings.overall.toFixed(1)}`,headlineZh:`${club.name} · 总评 ${ratings.overall.toFixed(1)}`,detail:`${funds.toLocaleString()} FC · ${club.players.length} players · ${club.trophies?.length??0} trophies`,detailZh:`${funds.toLocaleString()} 资金 · ${club.players.length} 名球员 · ${club.trophies?.length??0} 座奖杯`,next:next as string};
 }
 export function summarizeAction(action:ClubAction){return action.title}

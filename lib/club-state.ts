@@ -14,12 +14,11 @@ export type ClubState={
  colours:{primary:string;secondary:string};kits:{home:string;away:string};
  formation:ClubFormation;players:ClubPlayer[];lineup:string[];
  facilities:ClubFacilities;tactics:{active:ClubTactic;levels:Record<ClubTactic,number>};
- receipts:ClubReceipt[];migratedAt?:string;matches?:ClubMatchRecord[];season?:import('./club-league.ts').ClubSeason;cup?:import('./club-cup.ts').ClubCup;trophies?:ClubTrophy[];history?:SeasonRecord[];live?:{tier:number;startedAt:string;session:import('./match-v2.ts').V2State};display?:{frame?:string;backdrop?:string;kit?:string};decor?:{pitch?:string;stands?:string;lights?:string};assistant?:{autoSquad?:boolean;autoSubs?:boolean};createdAt:string;
+ receipts:ClubReceipt[];migratedAt?:string;matches?:ClubMatchRecord[];season?:import('./club-league.ts').ClubSeason;cup?:import('./club-cup.ts').ClubCup;trophies?:ClubTrophy[];history?:SeasonRecord[];display?:{frame?:string;backdrop?:string;kit?:string};decor?:{pitch?:string;stands?:string;lights?:string};assistant?:{autoSquad?:boolean;autoSubs?:boolean};createdAt:string;
 };
 export type SeasonRecord={id:string;tier:number;position:number;points:number;won:number;drawn:number;lost:number;gf:number;ga:number;outcome:'champion'|'promoted'|'relegated'|'stayed'|'abandoned';at:string;lineup?:{id:string;name:string;position:string;ovr:number}[]};
 export type ClubTrophy={id:string;kind:'cup'|'league';tier:number;label:string;at:string;kitId?:string;celebratedAt?:string};
-export type ClubMatchEventRecord={minute:number;side:'home'|'away';kind:'goal'|'chance'|'save'|'sub';line:'MID'|'ATT';label:string;scorer?:string;out?:string;x?:number;y?:number;homeName:string;awayName:string};
-export type ClubMatchRecord={id:string;at:string;tier:number;seed:number;opponent:{name:string;shortName:string};teams:{home:string;away:string};score:[number,number];possession:[number,number];shots:[number,number];onTarget:[number,number];events?:ClubMatchEventRecord[];path?:import('./club-match.ts').MatchPathFrame[];timeline?:import('./match-v2.ts').TimelineItem[];ballTrack?:{m:number;x:number;y:number}[];xg?:[number,number];engine?:'v1'|'v2';lineups?:{home:import('./club-lineup.ts').LineupSlot[];away:import('./club-lineup.ts').LineupSlot[]};subs?:number;explanation:{dominantLine:string;dominantSide:string;chancesFrom:string;concededBecause:string;tacticNote:string;nextStep:string}};
+export type ClubMatchRecord={id:string;at:string;tier:number;opponent:{name:string;shortName:string};teams:{home:string;away:string};score:[number,number]};
 export const CLUB_NAME_MAX=40,CLUB_SHORT_MAX=4;
 export const CLUB_TACTICS:ClubTactic[]=['balanced','possession','counter','wide','press'];
 const HEX=/^#[0-9a-f]{6}$/i;

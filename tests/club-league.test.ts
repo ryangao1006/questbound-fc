@@ -78,17 +78,15 @@ test('finishing a season records one history entry and starting another keeps it
  assert.equal(next.club!.history![0].tier,0);
 });
 
-test('a league round stores a watchable v2 match record and drains fitness',()=>{
+test('a league round stores a score-only match record and drains fitness',()=>{
  let state=stateOf();
  state=reduceCommand(state,{type:'club.league.start',id:'lg-rec',tier:0} as never);
  const before=state.club!.players.filter(player=>state.club!.lineup.includes(player.id)).reduce((sum,player)=>sum+(player.fitness??100),0)/11;
  const played=reduceCommand(state,{type:'club.league.play',id:'lg-rec-round'} as never);
  const record=played.club!.matches![0];
  assert(record,'the own fixture is saved as a match record');
- assert.equal(record.engine,'v2');
- assert(record.timeline&&record.timeline.length>0);
- assert(record.ballTrack&&record.ballTrack.length>0);
  assert.equal(record.tier,0);
+ assert.equal(record.score.length,2);
  const afterFitness=played.club!.players.map(player=>player.fitness??100);
  assert(afterFitness.some(value=>value<100),'league matches tire the squad');
  assert(before>=0);

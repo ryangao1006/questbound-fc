@@ -78,14 +78,13 @@ test('a drawn cup final records a penalty shootout and a winner',()=>{
  assert(found!.cup.matches.every(entry=>entry.pens===undefined||entry.round===2));
 });
 
-test('a cup round saves the club match with its timeline for replay',()=>{
+test('a cup round saves the club match as a score-only record',()=>{
  const state=stateOf();
  const started=reduceCommand(state,{type:'club.cup.start',id:'cup-rec',tier:0} as never);
  const played=reduceCommand(started,{type:'club.cup.play',id:'cup-rec-semis'} as never);
  const record=played.club!.matches![0];
  assert(record,'the cup match is saved');
- assert.equal(record.engine,'v2');
- assert(record.timeline&&record.timeline.length>0);
- assert(record.ballTrack&&record.ballTrack.length>0);
  assert.equal(record.tier,0);
+ assert.equal(record.score.length,2);
+ assert(record.opponent.name.length>0);
 });
