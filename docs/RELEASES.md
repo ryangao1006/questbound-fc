@@ -574,3 +574,11 @@ A UX audit (`UX-AUDIT.md`) of the app and the static demo found six concrete pro
 6. **Missed match results** — after a quick simulation the result hero scrolls into view, its heading takes focus and a live region announces the score.
 
 Validation: typecheck, **549 tests**, migration checks, `npm run prebuild`, production build, static demo build (index 640 KB), and browser checks for each fix. Schema remains 8.
+
+## 3.83 — accessibility audit, demo fund top-up and offline demo
+
+A WCAG 2.1 A/AA audit with **axe-core 4.14** ran over the four `/club` tabs, the 3D base and the static demo (desktop and 390 px). It found three issues, all fixed: six low-contrast small captions in the club-display options (now on a solid translucent chip with a lighter ink), the export button whose `aria-label` did not contain the visible text (now “导出摘要：…”), and the base page's “Back to club workspace” CTA (dark text on the green accent in light theme → light text). A re-run reports **zero violations** on the club tabs and the base, and zero on the overview, squad, match tabs and demo as before.
+
+The static demo gained a **Top up +5,000** control beside Reset (demo-only, writes only the browser document) and an **offline service worker** (`demo/public/sw.js`): install precaches the shell and its hashed assets parsed from `index.html`, fetch is network-first with cache fallback (navigation falls back to the cached shell). Verified: after one online visit the registration is active, the cache holds the shell/assets, and an offline reload still renders the demo UI; the top-up moved 5,150 → 10,150 FC. The SW path was fixed to `import.meta.env.BASE_URL` after a first attempt resolved under `/assets/` (404).
+
+Validation: typecheck, **549 tests**, migration checks, production build and static demo build. Schema remains 8.

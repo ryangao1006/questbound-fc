@@ -904,7 +904,7 @@ const COPY = {
   exportTitle: { en: "Export club summary", zh: "导出俱乐部摘要" },
   exportIntro: { en: "Download a JSON and Markdown summary to your device. Nothing is uploaded.", zh: "将 JSON 与 Markdown 摘要下载到本地，不会上传任何数据。" },
   exportButton: { en: "Export summary", zh: "导出摘要" },
-  exportAria: { en: "Download the club summary as JSON and Markdown", zh: "下载俱乐部摘要的 JSON 与 Markdown 文件" },
+  exportAria: { en: "Export summary: download the club summary as JSON and Markdown", zh: "导出摘要：下载俱乐部摘要的 JSON 与 Markdown 文件" },
   exportDone: { en: "Club summary downloaded: {0}.json and {1}.md", zh: "俱乐部摘要已下载：{0}.json 与 {1}.md" },
   exportEmpty: { en: "No club data to export yet.", zh: "还没有可导出的俱乐部数据。" },
   overviewIntro: { en: "A short home for what matters. Pick a tab when you need the detail.", zh: "只保留重要内容，需要细节时再切换到对应栏目。" },

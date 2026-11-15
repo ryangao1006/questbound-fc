@@ -52,3 +52,12 @@ export function demoSend(command:Record<string,unknown>,revision:number,operatio
  return {state:next,revision:storedNext.revision,updatedAt:now()};
 }
 export function demoResetToSeed():DemoEnvelope{resetDemo();return demoRead()}
+/** Demo-only: add funds so a long tour can continue (never exists in the real app). */
+export function demoTopUp(amount=5000):DemoEnvelope{
+ const stored=read(),state=structuredClone(stored.state);
+ const id=`grant:demo-topup-${Date.now()}`;
+ state.economy.sources.push({id,kind:'grant',amount,eligible:amount,spent:0,at:now()});
+ const next={revision:stored.revision+1,state,operations:stored.operations};
+ write(next);
+ return {state:next.state,revision:next.revision,updatedAt:now()};
+}
