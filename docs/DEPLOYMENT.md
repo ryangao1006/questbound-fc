@@ -12,6 +12,10 @@ The demo runs the whole club game in the browser: `/api/state` and `/api/command
 
 `?tab=` deep links and `#base` work the same as in the hosted app.
 
+## Why this repository cannot publish the full app from here
+
+The full build imports private hosting metadata from `.openai/` (project id, D1/R2 bindings) and the release guard requires a verified pre-update snapshot before publication. The generated `dist/server/wrangler.json` contains a **placeholder D1 database id**, so a raw `wrangler deploy` would ship a worker without a working database. Publishing therefore happens through the platform's official Sites workflow (or your own Wrangler config with real bindings), not from the GitHub repo. CI checks only run typecheck, tests, migration tests and the static demo build.
+
 ## 2. Full application (planner + club + sync) — needs your own Cloudflare resources
 
 The full app adds the planner, command API, D1 storage, R2 assets, sign-in and sync. It is intentionally not deployed from this repository because it needs account-specific identifiers.
