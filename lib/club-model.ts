@@ -11,6 +11,8 @@ export type ClubPlayer={
  id:string;name:string;position:FootballPosition;number:number;foot:'left'|'right';
  attributes:FootballAttributes;goalkeeper:FootballGoalkeeperAttributes;
  origin:'initial'|'signed';ovr:number;
+ /** Condition and injuries (optional so old documents load as fully fit). */
+ fitness?:number;injuryMatches?:number;
 };
 export type FormationSlot={line:ClubLine;position:FootballPosition};
 export type LineRatings={DEF:number;MID:number;ATT:number;GK:number;overall:number};

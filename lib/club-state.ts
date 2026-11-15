@@ -14,7 +14,7 @@ export type ClubState={
  colours:{primary:string;secondary:string};kits:{home:string;away:string};
  formation:ClubFormation;players:ClubPlayer[];lineup:string[];
  facilities:ClubFacilities;tactics:{active:ClubTactic;levels:Record<ClubTactic,number>};
- receipts:ClubReceipt[];migratedAt?:string;matches?:ClubMatchRecord[];season?:import('./club-league.ts').ClubSeason;cup?:import('./club-cup.ts').ClubCup;trophies?:ClubTrophy[];history?:SeasonRecord[];live?:{tier:number;startedAt:string;session:import('./match-v2.ts').V2State};display?:{frame?:string;backdrop?:string;kit?:string};decor?:{pitch?:string;stands?:string;lights?:string};createdAt:string;
+ receipts:ClubReceipt[];migratedAt?:string;matches?:ClubMatchRecord[];season?:import('./club-league.ts').ClubSeason;cup?:import('./club-cup.ts').ClubCup;trophies?:ClubTrophy[];history?:SeasonRecord[];live?:{tier:number;startedAt:string;session:import('./match-v2.ts').V2State};display?:{frame?:string;backdrop?:string;kit?:string};decor?:{pitch?:string;stands?:string;lights?:string};assistant?:{autoSquad?:boolean;autoSubs?:boolean};createdAt:string;
 };
 export type SeasonRecord={id:string;tier:number;position:number;points:number;won:number;drawn:number;lost:number;gf:number;ga:number;outcome:'champion'|'promoted'|'relegated'|'stayed'|'abandoned';at:string;lineup?:{id:string;name:string;position:string;ovr:number}[]};
 export type ClubTrophy={id:string;kind:'cup'|'league';tier:number;label:string;at:string;kitId?:string;celebratedAt?:string};
