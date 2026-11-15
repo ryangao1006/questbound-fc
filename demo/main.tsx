@@ -1,7 +1,7 @@
 import {createRoot} from 'react-dom/client';
-import {useEffect,useState} from 'react';
+import {Suspense,lazy,useEffect,useState} from 'react';
 import ClubPreview from '@/components/club-preview';
-import ClubBase from '@/components/club-base';
+const ClubBase=lazy(()=>import('@/components/club-base'));
 import '@/app/club.css';
 import './demo.css';
 
@@ -22,7 +22,7 @@ function Demo(){
     <button type="button" onClick={async()=>{const {resetDemo}=await import('@/lib/club-demo-store');resetDemo();location.hash='';location.reload()}}>Reset demo</button>
    </nav>
   </div>
-  <div id="top">{page==='base'?<ClubBase/>:<ClubPreview/>}</div>
+  <div id="top">{page==='base'?<Suspense fallback={<p role="status" style={{padding:'24px',color:'#9fb0c6'}}>Loading the base…</p>}><ClubBase/></Suspense>:<ClubPreview/>}</div>
  </>;
 }
 if ('serviceWorker' in navigator) navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(()=>{});
